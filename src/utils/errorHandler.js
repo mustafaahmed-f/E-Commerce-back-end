@@ -50,6 +50,7 @@ const newConfirmError = async (req, res, err) => {
   const checkUserExistence = await userModel.findOne({
     newConfirmToken: req.newConfirmToken,
   });
+
   if (!checkUserExistence) {
     return res.send("User is not found !");
   }
@@ -66,7 +67,7 @@ const newConfirmError = async (req, res, err) => {
   //check If user has profile image and delete it if it exists.
 
   if (
-    checkUserExistence.profileImage &&
+    checkUserExistence.profileImage.public_id &&
     checkUserExistence.isConfirmed == false
   ) {
     await cloudinary.uploader.destroy(

@@ -11,14 +11,27 @@ import { pagination } from "../../utils/pagination.js";
 export const getAllCategories = async (req, res, next) => {
   const { page, size } = req.query;
   const { limit, skip } = pagination({ page, size });
+  const neededQueries = ["sort", "page", "size", "select"];
+  const allQuery = { ...req.query };
+  neededQueries.forEach((key) => delete allQuery[key]);
+  const finalFilterQuery = JSON.parse(
+    JSON.stringify(allQuery).replace(
+      /eq|ne|regex|options|gt|gte|lt|lte|in|nin/g,
+      (match) => {
+        return `$${match}`;
+      }
+    )
+  );
   const categories = await categoryModel
-    .find()
-    .limit(limit)
-    .skip(skip)
-    .sort("name -createdAt")
-    .populate({
-      path: "subCategories",
-    });
+    .find(finalFilterQuery)
+    // .limit()
+    // .skip()
+    // .sort(req.query.sort.replaceAll("/", " "))
+    .select(req.query.select.replaceAll("/", " "));
+  // .populate({
+  //   path: "subCategories",
+  //   select: "name image",
+  // });
 
   if (!categories.length) {
     return res.status(404).json({ message: "No categories were found !" });

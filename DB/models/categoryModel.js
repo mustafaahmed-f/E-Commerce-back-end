@@ -17,7 +17,12 @@ const categorySchema = new Schema(
     customID: String,
     createdBy: { type: Types.ObjectId, ref: "user", required: true },
   },
-  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true }, //This causes an additional id field to appear in the response body.
+    toObject: { virtuals: true },
+  },
+  { unique: true }
 );
 
 categorySchema.virtual("subCategories", {

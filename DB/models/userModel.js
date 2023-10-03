@@ -56,13 +56,21 @@ const userSchema = new Schema(
     birthDate: String,
     token: String,
     confirmCode: String,
-    address: [String],
-    haveResetPassword: { type: Boolean, default: true },
+    forgetCode: { type: String, default: null },
     numOfConfirmRequests: { type: Number, default: 0 },
     newConfirmToken: String,
+    confirmToken: String,
   },
   { timestamps: true }
 );
+
+userSchema.virtual("Addresses", {
+  ref: "UserAddress",
+  localField: "_id",
+  foreignField: "user_id",
+});
+
+//TODO : virtual populate to address .
 
 const userModel = model.User || mongoose.model("User", userSchema);
 

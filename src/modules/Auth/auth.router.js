@@ -14,6 +14,11 @@ router.post(
   validation(validators.signUp),
   asyncHandler(authController.signUp)
 );
+router.post(
+  "/addAddress",
+  validation(validators.addAddress),
+  asyncHandler(authController.addAddress)
+);
 router.get(
   "/confirmEmail/:token",
   validation(validators.tokenOnly),
@@ -22,14 +27,25 @@ router.get(
 router.get(
   "/newConfirmEmail/:token",
   validation(validators.tokenOnly),
-  checkExistAndConfirmation("newConfirmEmail"),
+  // asyncHandler(checkExistAndConfirmation("newConfirmEmail")),
+  // checkExistAndConfirmation("newConfirmEmail"),
   asyncHandler(authController.newConfirmEmail)
 );
 router.get(
   "/unsubscribe/:token",
   validation(validators.tokenOnly),
-  asyncHandler(checkExistAndConfirmation("unsubscribe")),
+  // asyncHandler(checkExistAndConfirmation("unsubscribe")),
   asyncHandler(authController.unsubscribe)
+);
+router.post(
+  "/forgotPassword",
+  validation(validators.forgotPassword),
+  asyncHandler(authController.forgotPassword)
+);
+router.post(
+  "/setNewPassword",
+  validation(validators.setNewPassword),
+  asyncHandler(authController.setNewPassword)
 );
 
 export default router;
