@@ -15,6 +15,7 @@ export const getAllCategories = async (req, res, next) => {
     .find()
     .limit(limit)
     .skip(skip)
+    .sort("name -createdAt")
     .populate({
       path: "subCategories",
     });
