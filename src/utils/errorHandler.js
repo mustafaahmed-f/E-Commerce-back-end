@@ -1,9 +1,4 @@
-import {
-  ReasonPhrases,
-  StatusCodes,
-  getReasonPhrase,
-  getStatusCode,
-} from "http-status-codes";
+import { getReasonPhrase } from "http-status-codes";
 import cloudinary from "./cloudinary.js";
 import userModel from "../../DB/models/userModel.js";
 
@@ -117,6 +112,10 @@ async function removeResources(req) {
 async function removeFailedDocument(req) {
   if (req.createdDoc) {
     const { model, _id } = req.createdDoc;
+    await model.findByIdAndDelete(_id);
+  }
+  if (req.createdDoc1) {
+    const { model, _id } = req.createdDoc1;
     await model.findByIdAndDelete(_id);
   }
 }

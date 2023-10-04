@@ -86,7 +86,10 @@ export const signUp = async (req, res, next) => {
     return next(new Error("Failed to add user", { cause: 400 }));
   }
 
-  req.createdDoc = addUser;
+  req.createdDoc = {
+    model: userModel,
+    _id: addUser._id,
+  };
 
   const confirmCode = nanoid();
   const hashedCode = await bcrypt.hashSync(
@@ -145,7 +148,7 @@ export const signUp = async (req, res, next) => {
 //===================================================================================
 //===================================================================================
 
-export const addAddress = async (req, res, next) => {
+export const firstAddAddress = async (req, res, next) => {
   const { user_id } = req.query;
   const {
     unit_number,
@@ -164,6 +167,20 @@ export const addAddress = async (req, res, next) => {
     return next(new Error("User is not found", { cause: 400 }));
   }
 
+  //This API is used only during signUp.
+  if (user.numOfAddresses === 1) {
+    return next(
+      new Error("This API is used to add first address only during sign up!", {
+        cause: 400,
+      })
+    );
+  }
+
+  //If user is confirmed , he should use the add address API in the user module.
+  if (user.isConfirmed) {
+    return next(new Error("Token is needed !!", { cause: 400 }));
+  }
+
   const newAddress = {
     unit_number,
     street_number,
@@ -180,6 +197,11 @@ export const addAddress = async (req, res, next) => {
     return next(new Error("Failed to add address", { cause: 400 }));
   }
 
+  req.createdDoc = {
+    model: addressModel,
+    _id: addAddress._id,
+  };
+
   const addUserAddress = await user_addressModel.create({
     user_id,
     address: addAddress._id,
@@ -191,7 +213,22 @@ export const addAddress = async (req, res, next) => {
     return next(new Error("Failed to add address", { cause: 400 }));
   }
 
-  req.createdDoc = addUserAddress;
+  req.createdDoc1 = {
+    model: user_addressModel,
+    _id: addUserAddress._id,
+  };
+
+  const updatedUser = await userModel.findByIdAndUpdate(
+    user._id,
+    {
+      $inc: { numOfAddresses: 1 },
+    },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    return next(new Error("Failed to add address", { cause: 400 }));
+  }
 
   return res.status(200).json({
     message: "Address added successfully",
@@ -316,6 +353,9 @@ export const newConfirmEmail = async (req, res, next) => {
     html: html,
     subject: "Confirm email",
   });
+
+  user.confirmToken = confirmEmailToken;
+  await user.save();
 
   if (!isEmailSent) {
     return next(new Error("Failed to send email", { cause: 500 }));

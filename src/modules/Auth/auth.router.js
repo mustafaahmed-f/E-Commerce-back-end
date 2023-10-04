@@ -15,9 +15,9 @@ router.post(
   asyncHandler(authController.signUp)
 );
 router.post(
-  "/addAddress",
-  validation(validators.addAddress),
-  asyncHandler(authController.addAddress)
+  "/firstAddAddress",
+  validation(validators.firstAddAddress),
+  asyncHandler(authController.firstAddAddress)
 );
 router.get(
   "/confirmEmail/:token",

@@ -62,6 +62,11 @@ const addBrand = async (req, res, next) => {
       .json({ message: "Something went wrong", cause: 500 });
   }
 
+  req.createdDoc = {
+    model: brandsModel,
+    _id: brand._id,
+  };
+
   return res
     .status(200)
     .json({ message: "Brand has been added successfully", brand });

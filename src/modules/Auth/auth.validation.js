@@ -29,31 +29,13 @@ export const signUp = {
     .required(),
 };
 
-export const addAddress = {
+export const firstAddAddress = {
   query: joi
     .object({
       user_id: generalValidation._id,
     })
     .required(),
-  body: joi
-    .object({
-      address_line1: joi
-        .string()
-        .pattern(new RegExp(/^(\d{1,}) [a-zA-Z0-9\s]+ (st)(\.)?$/)), // Ex : 25 Abo elmagd el naggar st. ,
-      address_line2: joi
-        .string()
-        .alphanum()
-        .min(4)
-        .max(30)
-        .pattern(new RegExp(/^[a-zA-Z0-9\s]+$/)),
-      unit_number: joi.number().min(1).max(100),
-      street_number: joi.number().min(1).max(100),
-      city: joi.string().min(3).max(30),
-      region: joi.string().min(3).max(30),
-      postal_code: joi.string().min(3).max(30),
-      country: joi.string().min(3).max(30),
-    })
-    .required(),
+  body: generalValidation.addAddress.required(),
 };
 
 export const logIn = {

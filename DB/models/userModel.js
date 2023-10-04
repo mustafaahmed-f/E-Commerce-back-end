@@ -58,6 +58,7 @@ const userSchema = new Schema(
     confirmCode: String,
     forgetCode: { type: String, default: null },
     numOfConfirmRequests: { type: Number, default: 0 },
+    numOfAddresses: { type: Number, default: 0 },
     newConfirmToken: String,
     confirmToken: String,
   },

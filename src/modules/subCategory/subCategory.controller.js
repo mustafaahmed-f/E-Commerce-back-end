@@ -53,6 +53,11 @@ const addSubCategory = asyncHandler(async (req, res, next) => {
     return next(new Error("Something went wrong! ", { cause: 500 }));
   }
 
+  req.createdDoc = {
+    model: subCategoryModel,
+    _id: subCategory._id,
+  };
+
   return res.status(201).json({ message: "Done", subCategory });
 });
 

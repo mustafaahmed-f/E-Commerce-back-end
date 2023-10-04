@@ -78,6 +78,12 @@ export const addCategory = async (req, res, next) => {
 
     return next(new Error("Failed to add category", { Cause: 500 }));
   }
+
+  req.createdDoc = {
+    model: categoryModel,
+    _id: category._id,
+  };
+
   return res
     .status(200)
     .json({ message: "Category has been added successfully !", category });
