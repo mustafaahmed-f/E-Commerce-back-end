@@ -41,7 +41,6 @@ export const firstAddAddress = {
 export const logIn = {
   body: joi.object({
     userName: joi.string().min(3).max(20),
-    phoneNumber: joi.string().pattern(new RegExp("^(01)[1250][0-9]{8}$")),
     email: joi.string().email(),
     password: joi
       .string()
@@ -67,7 +66,7 @@ export const forgotPassword = {
 export const setNewPassword = {
   body: joi
     .object({
-      password: joi
+      newPassword: joi
         .string()
         .min(8)
         .max(25)
@@ -77,12 +76,12 @@ export const setNewPassword = {
           )
         )
         .required(),
-      confirmPassword: joi.string().valid(joi.ref("password")).required(),
+      confirmPassword: joi.string().valid(joi.ref("newPassword")).required(),
     })
     .required(),
   query: joi
     .object({
-      token: generalValidation.token,
+      token: generalValidation.token.required(),
     })
     .required(),
 };

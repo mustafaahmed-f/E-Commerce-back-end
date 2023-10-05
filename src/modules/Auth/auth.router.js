@@ -15,6 +15,11 @@ router.post(
   asyncHandler(authController.signUp)
 );
 router.post(
+  "/logIn",
+  validation(validators.logIn),
+  asyncHandler(authController.logIn)
+);
+router.post(
   "/firstAddAddress",
   validation(validators.firstAddAddress),
   asyncHandler(authController.firstAddAddress)

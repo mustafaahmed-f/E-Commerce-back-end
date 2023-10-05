@@ -49,7 +49,7 @@ export const resetHtmlTemplate = ({
     </tr>
     <tr>
     <td>
-    <a href='http://localhost:4200/#/eCommerce/resetPassword/:${forgotPasswordToken}' style="margin:20px 0px 30px 0px;border-radius:4px;padding:10px 20px;border: 0;color:#fff;background-color:#630E2B; ">Reset Password</a>
+    <a href='http://localhost:4200/#/eCommerce/resetPassword/${forgotPasswordToken}' style="margin:20px 0px 30px 0px;border-radius:4px;padding:10px 20px;border: 0;color:#fff;background-color:#630E2B; ">Reset Password</a>
     </td>
     
  

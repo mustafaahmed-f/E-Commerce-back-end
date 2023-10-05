@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 export const signToken = ({
   payload = {},
   signature = `${process.env.default_signature}`,
-  expiresIn = "1d",
+  expiresIn = "1h",
 }) => {
   if (!Object.keys(payload).length) {
     return next(

@@ -21,7 +21,6 @@ const userSchema = new Schema(
     phoneNumber: {
       type: String,
       required: true,
-      unique: true,
     },
     role: {
       type: String,
@@ -42,7 +41,7 @@ const userSchema = new Schema(
       secure_url: String,
       public_id: String,
     },
-    isBlocked: {
+    deactivated: {
       type: Boolean,
       default: false,
       enum: ["true", "false"],
@@ -52,15 +51,21 @@ const userSchema = new Schema(
       default: "male",
       enum: ["male", "female"],
     },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+      enum: ["true", "false"],
+    },
     customID: String,
     birthDate: String,
     token: String,
     confirmCode: String,
-    forgetCode: { type: String, default: null },
     numOfConfirmRequests: { type: Number, default: 0 },
     numOfAddresses: { type: Number, default: 0 },
     newConfirmToken: String,
     confirmToken: String,
+    forgotPasswordToken: { type: String, default: null },
+    userToken: String,
   },
   { timestamps: true }
 );

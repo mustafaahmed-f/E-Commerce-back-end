@@ -1,6 +1,7 @@
 import { getReasonPhrase } from "http-status-codes";
 import cloudinary from "./cloudinary.js";
 import userModel from "../../DB/models/userModel.js";
+import { signToken } from "./tokenMethod.js";
 
 export const asyncHandler = (fn) => {
   return (req, res, next) => {
@@ -10,6 +11,26 @@ export const asyncHandler = (fn) => {
 
       //Delete failed document from DB
       removeFailedDocument(req);
+
+      //catch error for set new password :
+      if (err == "TokenExpiredError: jwt expired" && req.setNewPassword) {
+        const user = await userModel.findOneAndUpdate(
+          {
+            forgotPasswordToken: req.setNewPassword,
+          },
+          { forgotPasswordToken: null }
+        );
+
+        if (!user) {
+          return next(new Error("Error!!", { cause: 500 }));
+        }
+        return next(
+          new Error(
+            "Time estimated to set new password finished! Request new forgot-password request !",
+            { cause: 400 }
+          )
+        );
+      }
 
       //catch error for new confirm email token expiration.
       if (req.newConfirmToken && err == "TokenExpiredError: jwt expired") {

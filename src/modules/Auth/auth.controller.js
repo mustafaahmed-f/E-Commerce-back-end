@@ -414,9 +414,16 @@ export const forgotPassword = async (req, res, next) => {
     return;
   }
 
+  if (user.forgotPasswordToken) {
+    return next(
+      new Error("We have already sent a reset password link !", { cause: 400 })
+    );
+  }
+
   const forgotPassToken = signToken({
-    payload: user.email,
+    payload: { email: user.email },
     signature: process.env.FORGOT_PASS_SIGNATUE,
+    expiresIn: "2h",
   });
 
   const html = resetHtmlTemplate({
@@ -436,6 +443,16 @@ export const forgotPassword = async (req, res, next) => {
     return next(new Error("Failed to send email", { cause: 500 }));
   }
 
+  const updatedUser = await userModel.findByIdAndUpdate(user._id, {
+    forgotPasswordToken: forgotPassToken,
+  });
+
+  if (!updatedUser) {
+    return next(
+      new Error("Please send new forgot-password request !", { cause: 500 })
+    );
+  }
+
   return res
     .status(200)
     .json({ message: "Check your inbox to reset your password !" });
@@ -450,14 +467,17 @@ export const setNewPassword = async (req, res, next) => {
 
   // User will be redirected to the reset page of the front end . Front end will recieve the token
   // From the params of reset link in the email . This token will be send in query with the new Password
-  // in body to the set new password API.
+  // in the query of the set new password API.
 
   const { token } = req.query;
   const { newPassword } = req.body;
 
+  req.setNewPassword = token;
+  //To allow user to send a new forgot-password request ;
+
   const decoded = verifyToken({
     token: token,
-    signature: process.env.CONFIRM_EMAIL_SIGNATURE,
+    signature: process.env.FORGOT_PASS_SIGNATUE,
   });
 
   if (!decoded?.email) {
@@ -476,14 +496,13 @@ export const setNewPassword = async (req, res, next) => {
 
   //Check if user made forgot-password request :
 
-  if (!user.forgetCode) {
+  if (!user.forgotPasswordToken) {
     return next(
       new Error("Make a forgot-password request first !", { cause: 400 })
     );
   }
 
   //Check if new password is same as old password :
-
   const match = await bcrypt.compare(newPassword, user.password);
   if (match) {
     return next(
@@ -497,7 +516,7 @@ export const setNewPassword = async (req, res, next) => {
   );
   const updatedUser = await userModel.findOneAndUpdate(
     { email: decoded.email },
-    { password: hashedNewPass }
+    { password: hashedNewPass, forgotPasswordToken: null }
   );
   if (!updatedUser) {
     return next(new Error("Failed", { cause: 500 }));
@@ -510,7 +529,60 @@ export const setNewPassword = async (req, res, next) => {
 //============================================================================
 //============================================================================
 
-export const logIn = async (req, res, next) => {};
+export const logIn = async (req, res, next) => {
+  const { email, password, userName } = req.body;
+  if (!email && !userName) {
+    return next(new Error("Email or userName is required !!", { cause: 400 }));
+  }
+  const user = await userModel.findOne({ email });
+  if (!user) {
+    return next(
+      new Error("Invalid email or user is not found", { cause: 400 })
+    );
+  }
+  const matchPassword = await bcrypt.compare(password, user.password);
+  if (!matchPassword) {
+    return next(new Error("Invalid password", { cause: 400 }));
+  }
+
+  //check Confirmation :
+  if (user.isConfirmed === false) {
+    return next(new Error("Please confrim your email first !", { cause: 400 }));
+  }
+
+  //check if user is online :
+  if (user.status === "online") {
+    return res.status(400).json({ message: "User is already logged in !" });
+  }
+
+  //check if user is deactivated :
+  if (user.deactivated === true) {
+    const activeUser = await userModel.findByIdAndUpdate(user._id, {
+      deactivated: false,
+    });
+    if (!activeUser) {
+      return next(new Error("Error!!", { cause: 500 }));
+    }
+  }
+
+  const Token = signToken({
+    payload: { email: user.email },
+    signature: process.env.LOGIN_SIGNATURE,
+    expiresIn: "1d",
+  });
+
+  const loginUser = await userModel.findByIdAndUpdate(user._id, {
+    status: "online",
+    userToken: Token,
+  });
+  if (!loginUser) {
+    return next(new Error("Failed to login!!", { cause: 500 }));
+  }
+
+  return res
+    .status(200)
+    .json({ message: "Logged in successfully ", token: Token });
+};
 
 //============================================================================
 //============================================================================
