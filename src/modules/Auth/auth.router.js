@@ -6,7 +6,6 @@ import { validation } from "../../middlewares/validation.js";
 import * as validators from "./auth.validation.js";
 import * as authController from "./auth.controller.js";
 import { asyncHandler } from "../../utils/errorHandler.js";
-import { checkExistAndConfirmation } from "../../middlewares/checkExist&confirmation.js";
 
 router.post(
   "/signUp",

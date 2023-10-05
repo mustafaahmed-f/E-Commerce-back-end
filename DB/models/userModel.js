@@ -59,13 +59,13 @@ const userSchema = new Schema(
     customID: String,
     birthDate: String,
     token: String,
-    confirmCode: String,
+    // confirmCode: String,
     numOfConfirmRequests: { type: Number, default: 0 },
     numOfAddresses: { type: Number, default: 0 },
-    newConfirmToken: String,
-    confirmToken: String,
-    forgotPasswordToken: { type: String, default: null },
-    userToken: String,
+    // newConfirmToken: String,
+    // confirmToken: String,
+    // forgotPasswordToken: { type: String, default: null },
+    // userToken: String,
   },
   { timestamps: true }
 );

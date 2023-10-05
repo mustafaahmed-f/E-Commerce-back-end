@@ -15,7 +15,7 @@ const categorySchema = new Schema(
       public_id: { type: String, required: true },
     },
     customID: String,
-    createdBy: { type: Types.ObjectId, ref: "user", required: true },
+    createdBy: { type: Types.ObjectId, ref: "User", required: true },
   },
   {
     timestamps: true,

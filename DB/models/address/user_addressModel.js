@@ -6,11 +6,13 @@ const user_addressSchema = new Schema({
     ref: "User",
     required: true,
   },
-  address: {
-    type: Schema.Types.ObjectId,
-    ref: "Address",
-    required: true,
-  },
+  addresses: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Address",
+      required: true,
+    },
+  ],
   is_default: {
     type: Boolean,
     default: false,

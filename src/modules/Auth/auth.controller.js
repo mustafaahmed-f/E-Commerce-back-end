@@ -8,6 +8,7 @@ import { customAlphabet } from "nanoid";
 import { resetHtmlTemplate } from "../../utils/resetPasswordTemplate.js";
 import addressModel from "../../../DB/models/address/addressModel.js";
 import user_addressModel from "../../../DB/models/address/user_addressModel.js";
+import tokenModel from "../../../DB/models/tokenModel.js";
 
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 
@@ -134,14 +135,20 @@ export const signUp = async (req, res, next) => {
   // newConfirmToken: newConfirmEmailToken,
   // confirmToken: confirmEmailToken,
 
-  addUser.confirmCode = hashedCode;
-  addUser.newConfirmToken = newConfirmEmailToken;
-  addUser.confirmToken = confirmEmailToken;
+  const addTokens = await tokenModel.create({
+    user_id: addUser._id,
+    confirmCode: hashedCode,
+    newConfirmToken: newConfirmEmailToken,
+    confirmToken: confirmEmailToken,
+  });
 
-  await addUser.save();
+  if (!addTokens) {
+    return next(new Error("Failed to add tokens", { cause: 400 }));
+  }
 
   return res.status(201).json({
     message: "User added successfully , please confirm your email !",
+    userID: addUser._id,
   });
 };
 
@@ -203,8 +210,7 @@ export const firstAddAddress = async (req, res, next) => {
   };
 
   const addUserAddress = await user_addressModel.create({
-    user_id,
-    address: addAddress._id,
+    user_id: user._id,
     is_default: is_default ?? false,
   });
 
@@ -212,6 +218,9 @@ export const firstAddAddress = async (req, res, next) => {
     await addressModel.findByIdAndDelete(addAddress._id);
     return next(new Error("Failed to add address", { cause: 400 }));
   }
+
+  addUserAddress.addresses.push(addAddress._id);
+  await addUserAddress.save();
 
   req.createdDoc1 = {
     model: user_addressModel,
@@ -258,7 +267,9 @@ export const confirmEmail = async (req, res, next) => {
     return res.send("User is not found");
   }
 
-  if (token !== userExistence.confirmToken) {
+  const tokens = await tokenModel.findOne({ user_id: userExistence._id });
+
+  if (token !== tokens.confirmToken) {
     return res.send("Error !!");
   }
 
@@ -266,13 +277,28 @@ export const confirmEmail = async (req, res, next) => {
     {
       email: decoded.email,
       isConfirmed: false,
-      confirmCode: decoded.confirmCode,
     },
-    { isConfirmed: true, confirmCode: null, numOfConfirmRequests: null },
+    { isConfirmed: true, numOfConfirmRequests: null },
     { new: true }
   );
+
   if (!user) {
     return res.send("User is already confirmed");
+  }
+
+  const updatedToken = await tokenModel.findOneAndUpdate(
+    {
+      user_id: user.id,
+      confirmCode: decoded.confirmCode,
+    },
+    { confirmCode: null },
+    { new: true }
+  );
+
+  if (!updatedToken) {
+    user.isConfirmed = false;
+    await user.save();
+    return res.send("Error !!");
   }
 
   return res
@@ -354,8 +380,21 @@ export const newConfirmEmail = async (req, res, next) => {
     subject: "Confirm email",
   });
 
-  user.confirmToken = confirmEmailToken;
-  await user.save();
+  const updateToken = await tokenModel.findOneAndUpdate(
+    {
+      user_id: user.id,
+    },
+    {
+      confirmToken: confirmEmailToken,
+    },
+    { new: true }
+  );
+
+  if (!updateToken) {
+    return next(
+      new Error("Error!! Request new email confirmation !", { cause: 500 })
+    );
+  }
 
   if (!isEmailSent) {
     return next(new Error("Failed to send email", { cause: 500 }));
@@ -379,7 +418,13 @@ export const unsubscribe = async (req, res, next) => {
 
   req.continueApi = true;
 
-  const user = await checkExistAndConfirmationFunction(req, res, next, decoded);
+  const user = await checkExistAndConfirmationFunction(
+    req,
+    res,
+    next,
+    decoded,
+    token
+  );
   if (!req.continueApi) {
     return;
   }
@@ -392,7 +437,35 @@ export const unsubscribe = async (req, res, next) => {
     );
   }
 
-  //Delete user:
+  //Delete user , addresses and tokens:
+  //First find address:
+
+  if (user.numOfAddresses) {
+    const userAddress = await user_addressModel.findOne({ user_id: user.id });
+
+    const deletedAddress = await addressModel.deleteMany({
+      _id: { $in: userAddress.addresses },
+    });
+
+    if (!deletedAddress.deletedCount) {
+      return res.send("Failed to delete Addresses!");
+    }
+
+    const deleteFinalAddress = await user_addressModel.deleteOne({
+      user_id: user.id,
+    });
+    if (!deleteFinalAddress) {
+      return res.send("Failed to delete Addresses!");
+    }
+    user.numOfAddresses = 0;
+    await user.save();
+  }
+
+  const deletedTokens = await tokenModel.findOneAndDelete({ user_id: user.id });
+  if (!deletedTokens) {
+    return res.send("Failed !");
+  }
+
   const deletedUser = await userModel.findByIdAndDelete(user._id);
   if (!deletedUser) {
     return res.send("Failed to delete user !");
@@ -443,11 +516,14 @@ export const forgotPassword = async (req, res, next) => {
     return next(new Error("Failed to send email", { cause: 500 }));
   }
 
-  const updatedUser = await userModel.findByIdAndUpdate(user._id, {
-    forgotPasswordToken: forgotPassToken,
-  });
+  const updatedToken = await tokenModel.findOneAndUpdate(
+    { user_id: user.id },
+    {
+      forgotPasswordToken: forgotPassToken,
+    }
+  );
 
-  if (!updatedUser) {
+  if (!updatedToken) {
     return next(
       new Error("Please send new forgot-password request !", { cause: 500 })
     );
@@ -496,7 +572,11 @@ export const setNewPassword = async (req, res, next) => {
 
   //Check if user made forgot-password request :
 
-  if (!user.forgotPasswordToken) {
+  const checkToken = await tokenModel.findOne({
+    user_id: user.id,
+  });
+
+  if (!checkToken.forgotPasswordToken) {
     return next(
       new Error("Make a forgot-password request first !", { cause: 400 })
     );
@@ -514,13 +594,25 @@ export const setNewPassword = async (req, res, next) => {
     newPassword,
     parseInt(process.env.SALT_ROUND)
   );
+
+  const updateToken = await tokenModel.findOneAndUpdate(
+    { user_id: user.id },
+    { forgotPasswordToken: null },
+    { new: true }
+  );
+
+  if (!updateToken) {
+    return next(new Error("Failed", { cause: 500 }));
+  }
+
   const updatedUser = await userModel.findOneAndUpdate(
     { email: decoded.email },
-    { password: hashedNewPass, forgotPasswordToken: null }
+    { password: hashedNewPass }
   );
   if (!updatedUser) {
     return next(new Error("Failed", { cause: 500 }));
   }
+
   return res
     .status(200)
     .json({ message: "Password has been updated successfully !" });
@@ -608,7 +700,9 @@ const checkExistAndConfirmationFunction = async (
     return res.send("User is not found");
   }
 
-  if (token !== user.newConfirmToken) {
+  const checkToken = await tokenModel.findOne({ user_id: user._id });
+
+  if (token !== checkToken.newConfirmToken) {
     req.continueApi = false;
     return res.send("Error !!");
   }
