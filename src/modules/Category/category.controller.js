@@ -6,38 +6,29 @@ const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 import cloudinary from "../../utils/cloudinary.js";
 import subCategoryModel from "../../../DB/models/subCategoryModel.js";
 import brandsModel from "../../../DB/models/brandsModel.js";
-import { pagination } from "../../utils/pagination.js";
+import { paginationFunction } from "../../utils/pagination.js";
+import { ApiFeatures } from "../../utils/apiFeatures.js";
 
 export const getAllCategories = async (req, res, next) => {
-  const { page, size } = req.query;
-  const { limit, skip } = pagination({ page, size });
-  const neededQueries = ["sort", "page", "size", "select"];
-  const allQuery = { ...req.query };
-  neededQueries.forEach((key) => delete allQuery[key]);
-  const finalFilterQuery = JSON.parse(
-    JSON.stringify(allQuery).replace(
-      /eq|ne|regex|options|gt|gte|lt|lte|in|nin/g,
-      (match) => {
-        return `$${match}`;
-      }
-    )
-  );
-  const categories = await categoryModel
-    .find(finalFilterQuery)
-    // .limit()
-    // .skip()
-    // .sort(req.query.sort.replaceAll("/", " "))
-    .select(req.query.select.replaceAll("/", " "));
-  // .populate({
-  //   path: "subCategories",
-  //   select: "name image",
-  // });
+  //===================================================
+  //================ API Features =====================
+  //===================================================
+
+  const apiFeaturesInstance = new ApiFeatures(categoryModel.find(), req.query)
+    .paignation()
+    .sort()
+    .filter()
+    .select();
+  const categories = await apiFeaturesInstance.mongooseQuery;
 
   if (!categories.length) {
     return res.status(404).json({ message: "No categories were found !" });
   }
   return res.status(200).json({ message: "Done", Categories: categories });
 };
+
+//===============================================================================
+//===============================================================================
 
 export const addCategory = async (req, res, next) => {
   const { name } = req.body;
@@ -69,6 +60,7 @@ export const addCategory = async (req, res, next) => {
     name,
     slug,
     customID,
+    createdBy: req.user,
     image: { secure_url, public_id },
   });
 

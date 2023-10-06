@@ -148,7 +148,7 @@ export const signUp = async (req, res, next) => {
 
   return res.status(201).json({
     message: "User added successfully , please confirm your email !",
-    userID: addUser._id,
+    key_to_add_address: customID,
   });
 };
 
@@ -156,7 +156,7 @@ export const signUp = async (req, res, next) => {
 //===================================================================================
 
 export const firstAddAddress = async (req, res, next) => {
-  const { user_id } = req.query;
+  const { customID } = req.query;
   const {
     unit_number,
     street_number,
@@ -169,7 +169,7 @@ export const firstAddAddress = async (req, res, next) => {
     is_default,
   } = req.body;
   //check user Existence :
-  const user = await userModel.findOne({ _id: user_id });
+  const user = await userModel.findOne({ customID: customID });
   if (!user) {
     return next(new Error("User is not found", { cause: 400 }));
   }
@@ -658,22 +658,30 @@ export const logIn = async (req, res, next) => {
   }
 
   const Token = signToken({
-    payload: { email: user.email },
+    payload: { id: user._id },
     signature: process.env.LOGIN_SIGNATURE,
     expiresIn: "1d",
   });
 
   const loginUser = await userModel.findByIdAndUpdate(user._id, {
     status: "online",
-    userToken: Token,
   });
-  if (!loginUser) {
+  const loginToken = await tokenModel.findOneAndUpdate(
+    { user_id: user._id },
+    {
+      loginToken: Token,
+    }
+  );
+  if (!loginToken || !loginUser) {
+    await userModel.findByIdAndUpdate(user._id, {
+      status: "offline",
+    });
     return next(new Error("Failed to login!!", { cause: 500 }));
   }
 
   return res
     .status(200)
-    .json({ message: "Logged in successfully ", token: Token });
+    .json({ message: "Logged in successfully ", token: loginToken });
 };
 
 //============================================================================

@@ -32,7 +32,7 @@ export const signUp = {
 export const firstAddAddress = {
   query: joi
     .object({
-      user_id: generalValidation._id,
+      customID: joi.string().required(),
     })
     .required(),
   body: generalValidation.addAddress.required(),

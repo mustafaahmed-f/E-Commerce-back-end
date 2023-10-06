@@ -47,6 +47,10 @@ export const asyncHandler = (fn) => {
   };
 };
 
+//============================================================================
+//====================== Global error handler ================================
+//============================================================================
+
 export const globalErrorHandler = (err, req, res, next) => {
   if (err) {
     if (req.validationErrorArr) {
@@ -60,6 +64,10 @@ export const globalErrorHandler = (err, req, res, next) => {
       .json({ errMsg: err.message, status: getReasonPhrase(err.cause || 400) });
   }
 };
+
+//============================================================================
+//============================== Functions ===================================
+//============================================================================
 
 const newConfirmError = async (req, res, err) => {
   //check user existence:
