@@ -8,35 +8,37 @@ export class ApiFeatures {
 
   //pagination
   paignation() {
-    const { limit, skip } = paginationFunction({
-      page: this.queryObj.page,
-      size: this.queryObj.size,
-    });
+    const { page, size } = this.queryObj;
+    const { limit, skip } = paginationFunction({ page, size });
     this.mongooseQuery.limit(limit).skip(skip);
     return this;
   }
 
   //sort
   sort() {
-    const { sort } = this.queryObj;
-    this.mongooseQuery.sort(sort.replaceAll("/", " "));
+    this.mongooseQuery.sort(this.queryObj.sort?.replaceAll("/", " "));
     return this;
   }
 
   //select
   select() {
-    const { select } = this.queryObj;
-    this.mongooseQuery.select(select.replaceAll("/", " "));
+    this.mongooseQuery.select(this.queryObj.select?.replaceAll("/", " "));
     return this;
   }
 
   //filter
   filter() {
-    const neededQueries = ["sort", "page", "size", "select"];
-    const allQuery = { ...req.query };
-    neededQueries.forEach((key) => delete allQuery[key]);
+    const { page, size, sort, select, search, ...filter } = this.queryObj;
+
+    // const neededQueries = ["sort", "page", "size", "select"];
+    // const allQuery = { ...this.queryObj };
+    // neededQueries.forEach((key) => {
+    //   if (this.queryObj.key) {
+    //     delete allQuery[key];
+    //   }
+    // });
     const finalFilterQuery = JSON.parse(
-      JSON.stringify(allQuery).replace(
+      JSON.stringify(filter).replace(
         /eq|ne|regex|options|gt|gte|lt|lte|in|nin/g,
         (match) => {
           return `$${match}`;

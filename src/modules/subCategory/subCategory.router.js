@@ -6,8 +6,18 @@ import { fileTypeValidation } from "../../utils/allowedFileTypes.js";
 import { validation } from "../../middlewares/validation.js";
 import * as validators from "./subCategory.validation.js";
 import { asyncHandler } from "../../utils/errorHandler.js";
+import { auth } from "../../middlewares/auth.js";
+import { userRole } from "../../utils/userRoles.js";
 
 router.get("/getAllSubCategories", subCategoriesController.getAllSubCategories);
+router.get(
+  "/getSpecificSubCategory/:subCategoryId",
+  asyncHandler(subCategoriesController.getSpecificSubCategory)
+);
+//===================================================================
+//===================================================================
+router.use(auth([userRole.admin, userRole.superAdmin]));
+
 router.post(
   "/addSubCategory",
   uploadFile(fileTypeValidation.image).single("image"),
@@ -24,10 +34,6 @@ router.delete(
   "/deleteSubCategory",
   validation(validators.deleteSubCategory),
   subCategoriesController.deleteSubCategory
-);
-router.get(
-  "/getSpecificSubCategory/:subCategoryId",
-  asyncHandler(subCategoriesController.getSpecificSubCategory)
 );
 
 export default router;

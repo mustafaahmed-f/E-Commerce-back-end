@@ -4,12 +4,16 @@ import subCategoryModel from "../../../DB/models/subCategoryModel.js";
 import cloudinary from "../../utils/cloudinary.js";
 import categoryModel from "../../../DB/models/categoryModel.js";
 import { customAlphabet } from "nanoid";
+import { ApiFeatures } from "../../utils/apiFeatures.js";
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 
 const getAllBrands = async (req, res, next) => {
-  const { page, size } = req.query;
-  const { limit, skip } = pagination({ page, size });
-  const brands = await brandsModel.find().limit(limit).skip(skip);
+  const apiFeaturesInstance = new ApiFeatures(brandsModel.find(), req.query)
+    .sort()
+    .paignation()
+    .filter()
+    .select();
+  const brands = await apiFeaturesInstance.mongooseQuery;
   if (!brands.length) {
     return next(new Error("No brands were found", { cause: 404 }));
   }

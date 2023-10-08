@@ -38,7 +38,7 @@ const productSchema = new Schema(
     },
 
     colors: [String],
-    sizes: [String],
+    sizes: [{ type: String, enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] }],
 
     categoryID: { type: Types.ObjectId, ref: "Category", required: true },
     subCategoryID: { type: Types.ObjectId, ref: "SubCategory", required: true },

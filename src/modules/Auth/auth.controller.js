@@ -658,9 +658,10 @@ export const logIn = async (req, res, next) => {
   }
 
   const Token = signToken({
-    payload: { id: user._id },
+    payload: { _id: user._id },
     signature: process.env.LOGIN_SIGNATURE,
     expiresIn: "1d",
+    // expiresIn: 20,
   });
 
   const loginUser = await userModel.findByIdAndUpdate(user._id, {
@@ -681,7 +682,7 @@ export const logIn = async (req, res, next) => {
 
   return res
     .status(200)
-    .json({ message: "Logged in successfully ", token: loginToken });
+    .json({ message: "Logged in successfully ", token: Token });
 };
 
 //============================================================================

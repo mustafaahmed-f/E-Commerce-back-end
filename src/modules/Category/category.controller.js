@@ -6,17 +6,14 @@ const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 import cloudinary from "../../utils/cloudinary.js";
 import subCategoryModel from "../../../DB/models/subCategoryModel.js";
 import brandsModel from "../../../DB/models/brandsModel.js";
-import { paginationFunction } from "../../utils/pagination.js";
 import { ApiFeatures } from "../../utils/apiFeatures.js";
+import productModel from "../../../DB/models/productModel.js";
+import { userRole } from "../../utils/userRoles.js";
 
 export const getAllCategories = async (req, res, next) => {
-  //===================================================
-  //================ API Features =====================
-  //===================================================
-
   const apiFeaturesInstance = new ApiFeatures(categoryModel.find(), req.query)
-    .paignation()
     .sort()
+    .paignation()
     .filter()
     .select();
   const categories = await apiFeaturesInstance.mongooseQuery;
@@ -60,7 +57,7 @@ export const addCategory = async (req, res, next) => {
     name,
     slug,
     customID,
-    createdBy: req.user,
+    createdBy: req.user.id,
     image: { secure_url, public_id },
   });
 
@@ -96,6 +93,13 @@ export const getSpecificCategory = async (req, res, next) => {
 
 export const updateCategory = async (req, res, next) => {
   const { categoryID } = req.query;
+  const checkCreator = await categoryModel.findOne({
+    _id: categoryID,
+    createdBy: req.user.id,
+  });
+  if (!checkCreator && req.user.role != userRole.superAdmin) {
+    return next(new Error("You can't update this category!", { cause: 400 }));
+  }
 
   const category = await categoryModel.findById(categoryID);
 
@@ -142,14 +146,62 @@ export const updateCategory = async (req, res, next) => {
 
 export const deleteCategory = async (req, res, next) => {
   const { _id } = req.query;
+  const checkCreator = await categoryModel.findOne({
+    _id,
+    createdBy: req.user.id,
+  });
+  if (!checkCreator && req.user.role != userRole.superAdmin) {
+    return next(new Error("You can't delete this category!", { cause: 400 }));
+  }
 
   //DB
-  //TODO : delete related products
+  //deleting related products
+  const checkProductsExistence = await productModel.find({
+    categoryID: _id,
+  });
+  if (checkProductsExistence.length) {
+    // Delete related images
+    for (let i = 0; i < checkProductsExistence.length; i++) {
+      if (
+        checkProductsExistence[i].images?.public_id ||
+        checkProductsExistence[i].mainImage?.public_id
+      ) {
+        await cloudinary.api.delete_resources_by_prefix(
+          `${process.env.cloud_folder}/Products/${checkProductsExistence[i].customID}`
+        );
+        await cloudinary.api.delete_folder(
+          `${process.env.cloud_folder}/Products/${checkProductsExistence[i].customID}`
+        );
+      }
+    }
 
+    const deletedRelatedProducts = await productModel.deleteMany({
+      categoryID: _id,
+    });
+    if (!deletedRelatedProducts.deletedCount) {
+      return next(
+        new Error("Failed to delete related products!", { cause: 500 })
+      );
+    }
+  }
+
+  //Deleting related subcategories:
   const checkSubCategoriesExistence = await subCategoryModel.find({
     categoryID: _id,
   });
   if (checkSubCategoriesExistence.length) {
+    //Delete related images of subcategories :
+    for (let i = 0; i < checkSubCategoriesExistence.length; i++) {
+      if (checkSubCategoriesExistence[i].image?.public_id) {
+        await cloudinary.api.delete_resources_by_prefix(
+          `${process.env.cloud_folder}/SubCategories/${checkSubCategoriesExistence[i].customID}`
+        );
+        await cloudinary.api.delete_folder(
+          `${process.env.cloud_folder}/SubCategories/${checkSubCategoriesExistence[i].customID}`
+        );
+      }
+    }
+
     const deletedSubCategories = await subCategoryModel.deleteMany({
       categoryID: _id,
     });
@@ -159,16 +211,6 @@ export const deleteCategory = async (req, res, next) => {
       );
     }
   }
-
-  // check products existence :
-  //TODO : import product model and correct name if not the same name
-
-  // const checkProductsExistence = await productModel.find({categoryID:_id})
-  // if(checkProductsExistence.length) {
-  //   const deletedProducts = await productModel.deleteMany({categoryID:_id})
-  //   if(!deletedProducts.deletedCount) {return next(new Error("Failed to delete related products!", { cause: 500 }));}
-  // }
-
   //host
 
   const deletedCategory = await categoryModel.findByIdAndDelete(_id);
@@ -180,12 +222,14 @@ export const deleteCategory = async (req, res, next) => {
     );
   }
 
-  await cloudinary.api.delete_resources_by_prefix(
-    `${process.env.cloud_folder}/Categories/${deletedCategory.customID}`
-  );
-  await cloudinary.api.delete_folder(
-    `${process.env.cloud_folder}/Categories/${deletedCategory.customID}`
-  );
+  if (deleteCategory.image?.public_id) {
+    await cloudinary.api.delete_resources_by_prefix(
+      `${process.env.cloud_folder}/Categories/${deletedCategory.customID}`
+    );
+    await cloudinary.api.delete_folder(
+      `${process.env.cloud_folder}/Categories/${deletedCategory.customID}`
+    );
+  }
 
   return res
     .status(200)

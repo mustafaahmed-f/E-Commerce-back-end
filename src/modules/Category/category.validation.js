@@ -11,7 +11,8 @@ export const addCategory = {
     .object({
       authorization: generalValidation.authorization,
     })
-    .required(),
+    .required()
+    .unknown(true),
 };
 
 export const updateCategory = {
@@ -21,10 +22,22 @@ export const updateCategory = {
   query: joi.object({
     categoryID: generalValidation._id,
   }),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
 };
 
 export const deleteCategory = {
   query: joi.object({
     _id: generalValidation._id,
   }),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
 };

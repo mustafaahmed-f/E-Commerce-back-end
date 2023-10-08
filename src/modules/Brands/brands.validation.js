@@ -5,6 +5,12 @@ export const addBrand = {
   body: joi.object({
     name: generalValidation.name,
   }),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
 };
 
 export const updateBrand = {
@@ -14,12 +20,24 @@ export const updateBrand = {
   query: joi.object({
     _id: generalValidation._id,
   }),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
 };
 
 export const deleteBrand = {
   query: joi.object({
     _id: generalValidation._id,
   }),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
 };
 
 export const getSpecificBrand = {
