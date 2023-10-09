@@ -1,8 +1,6 @@
 import brandsModel from "../../../DB/models/brandsModel.js";
 import slugify from "slugify";
-import subCategoryModel from "../../../DB/models/subCategoryModel.js";
 import cloudinary from "../../utils/cloudinary.js";
-import categoryModel from "../../../DB/models/categoryModel.js";
 import { customAlphabet } from "nanoid";
 import { ApiFeatures } from "../../utils/apiFeatures.js";
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);

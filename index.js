@@ -2,13 +2,13 @@ import express from "express";
 const app = express();
 import { config } from "dotenv";
 import path from "path";
-import connection from "./DB/connect.js";
 import bootstrap from "./src/initiateApp.js";
 import { deleteNonConfirmedUsers } from "./src/utils/deleteNonConfirmedAcc.js";
-import userModel from "./DB/models/userModel.js";
+
 import {
   fakeBrandsDataGenerator,
   fakeCategoriesDataGenerator,
+  fakeProductsDataGenerator,
   fakeProuctDataGenerator,
   fakeSubCategoriesDataGenerator,
 } from "./src/utils/fakeData.js";
@@ -20,7 +20,12 @@ deleteNonConfirmedUsers();
 
 bootstrap(app, express);
 
+//=====================================================
+//==============Fake data Generator====================
+//=====================================================
+
 // fakeCategoriesDataGenerator();
 // fakeSubCategoriesDataGenerator();
 // fakeProuctDataGenerator();
 // fakeBrandsDataGenerator();
+// fakeProductsDataGenerator();

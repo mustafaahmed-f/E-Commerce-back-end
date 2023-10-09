@@ -28,13 +28,13 @@ const productSchema = new Schema(
 
     images: [
       {
-        secure_url: { type: String, required: true },
-        public_id: { type: String, required: true },
+        secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
+        public_id: { type: String, required: false }, //TODO : make required true after adding fake data
       },
     ],
     mainImage: {
-      secure_url: { type: String },
-      public_id: { type: String },
+      secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
+      public_id: { type: String, required: false }, //TODO : make required true after adding fake data
     },
 
     colors: [String],
