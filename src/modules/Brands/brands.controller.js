@@ -5,6 +5,14 @@ import { customAlphabet } from "nanoid";
 import { ApiFeatures } from "../../utils/apiFeatures.js";
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 
+export const getEveryBrand = async (req, res, next) => {
+  const brands = await brandsModel.find();
+  if (!brands.length) {
+    return next(new Error("No brands were found", { cause: 404 }));
+  }
+  return res.status(200).json({ message: "Done", brands });
+};
+
 const getAllBrands = async (req, res, next) => {
   const apiFeaturesInstance = new ApiFeatures(brandsModel.find(), req.query)
     .sort()
@@ -54,6 +62,7 @@ const addBrand = async (req, res, next) => {
     slug,
     customID,
     logo: { secure_url: secure_url, public_id: public_id },
+    createdBy: req.user.id,
   });
 
   if (!brand) {
@@ -81,7 +90,10 @@ const updateBrand = async (req, res, next) => {
   const { name } = req.body;
   const { _id } = req.query;
 
-  const brand = await brandsModel.findById(_id);
+  const brand = await brandsModel.findOne({ _id });
+  if (!brand) {
+    return next(new Error("Brand not found!", { cause: 404 }));
+  }
 
   if (name) {
     //check same old name:
@@ -120,6 +132,7 @@ const updateBrand = async (req, res, next) => {
 
     brand.image = { secure_url: secure_url, public_id: public_id };
   }
+  brand.updatedBy = req.user.id;
   brand
     .save()
     .then(() => {
@@ -142,12 +155,14 @@ const deleteBrand = async (req, res, next) => {
     return next(new Error("Brand not found", { cause: 404 }));
   }
 
-  await cloudinary.api.delete_resources_by_prefix(
-    `${process.env.cloud_folder}/Brands/${brand.customID}`
-  );
-  await cloudinary.api.delete_folder(
-    `${process.env.cloud_folder}/Brands/${brand.customID}`
-  );
+  if (brand.logo?.public_id) {
+    await cloudinary.api.delete_resources_by_prefix(
+      `${process.env.cloud_folder}/Brands/${brand.customID}`
+    );
+    await cloudinary.api.delete_folder(
+      `${process.env.cloud_folder}/Brands/${brand.customID}`
+    );
+  }
 
   return res
     .status(200)

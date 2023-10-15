@@ -1,4 +1,5 @@
 import mongoose, { Schema, Types, model } from "mongoose";
+import { deleteProductsForSubCategories } from "../../src/plugins/deletingRelatedDocs.js";
 
 const subCategorySchema = new Schema(
   {
@@ -16,10 +17,13 @@ const subCategorySchema = new Schema(
     },
     customID: String,
     createdBy: { type: Types.ObjectId, ref: "user", required: true },
+    updatedBy: { type: Types.ObjectId, ref: "User" },
     categoryID: { type: Types.ObjectId, ref: "Category", required: true },
   },
   { timestamps: true }
 );
+
+subCategorySchema.plugin(deleteProductsForSubCategories);
 
 const subCategoryModel =
   model.SubCategory || mongoose.model("SubCategory", subCategorySchema);

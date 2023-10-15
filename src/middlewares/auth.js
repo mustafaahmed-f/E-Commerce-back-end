@@ -40,7 +40,12 @@ export const auth = (accessRoles) => {
           return next(new Error("You are not authorized !", { cause: 403 }));
         }
 
-        req.user = { email: user.email, id: user._id, role: user.role };
+        req.user = {
+          email: user.email,
+          id: user._id,
+          role: user.role,
+          userName: user.userName,
+        };
 
         //update login token in token model if token is refreshed ..
         const userLoginToken = await tokenModel.findOne({

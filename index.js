@@ -12,6 +12,7 @@ import {
   fakeProuctDataGenerator,
   fakeSubCategoriesDataGenerator,
 } from "./src/utils/fakeData.js";
+import productModel from "./DB/models/productModel.js";
 config({ path: path.resolve("./config/config.env") });
 
 app.use(express.urlencoded());
@@ -29,3 +30,5 @@ bootstrap(app, express);
 // fakeProuctDataGenerator();
 // fakeBrandsDataGenerator();
 // fakeProductsDataGenerator();
+
+// await productModel.deleteMany({ brandID: "6522c3dc61ac11c0cc18d685" });

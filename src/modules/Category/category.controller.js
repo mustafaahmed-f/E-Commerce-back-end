@@ -1,14 +1,18 @@
 import categoryModel from "../../../DB/models/categoryModel.js";
-import { asyncHandler } from "../../utils/errorHandler.js";
 import slugify from "slugify";
 import { customAlphabet } from "nanoid";
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 import cloudinary from "../../utils/cloudinary.js";
-import subCategoryModel from "../../../DB/models/subCategoryModel.js";
-import brandsModel from "../../../DB/models/brandsModel.js";
 import { ApiFeatures } from "../../utils/apiFeatures.js";
-import productModel from "../../../DB/models/productModel.js";
 import { userRole } from "../../utils/userRoles.js";
+
+export const getEveryCategory = async (req, res, next) => {
+  const categories = await categoryModel.find();
+  if (!categories.length) {
+    return res.status(404).json({ message: "No categories were found !" });
+  }
+  return res.status(200).json({ message: "Done", Categories: categories });
+};
 
 export const getAllCategories = async (req, res, next) => {
   const apiFeaturesInstance = new ApiFeatures(categoryModel.find(), req.query)
@@ -93,13 +97,6 @@ export const getSpecificCategory = async (req, res, next) => {
 
 export const updateCategory = async (req, res, next) => {
   const { categoryID } = req.query;
-  const checkCreator = await categoryModel.findOne({
-    _id: categoryID,
-    createdBy: req.user.id,
-  });
-  if (!checkCreator && req.user.role != userRole.superAdmin) {
-    return next(new Error("You can't update this category!", { cause: 400 }));
-  }
 
   const category = await categoryModel.findById(categoryID);
 
@@ -137,6 +134,7 @@ export const updateCategory = async (req, res, next) => {
       });
     category.image = { secure_url, public_id };
   }
+  category.updatedBy = req.user.id;
 
   await category.save();
   return res
@@ -156,61 +154,11 @@ export const deleteCategory = async (req, res, next) => {
 
   //DB
   //deleting related products
-  const checkProductsExistence = await productModel.find({
-    categoryID: _id,
-  });
-  if (checkProductsExistence.length) {
-    // Delete related images
-    for (let i = 0; i < checkProductsExistence.length; i++) {
-      if (
-        checkProductsExistence[i].images?.public_id ||
-        checkProductsExistence[i].mainImage?.public_id
-      ) {
-        await cloudinary.api.delete_resources_by_prefix(
-          `${process.env.cloud_folder}/Products/${checkProductsExistence[i].customID}`
-        );
-        await cloudinary.api.delete_folder(
-          `${process.env.cloud_folder}/Products/${checkProductsExistence[i].customID}`
-        );
-      }
-    }
-
-    const deletedRelatedProducts = await productModel.deleteMany({
-      categoryID: _id,
-    });
-    if (!deletedRelatedProducts.deletedCount) {
-      return next(
-        new Error("Failed to delete related products!", { cause: 500 })
-      );
-    }
-  }
+  //It occurs throw hooks in plugin
 
   //Deleting related subcategories:
-  const checkSubCategoriesExistence = await subCategoryModel.find({
-    categoryID: _id,
-  });
-  if (checkSubCategoriesExistence.length) {
-    //Delete related images of subcategories :
-    for (let i = 0; i < checkSubCategoriesExistence.length; i++) {
-      if (checkSubCategoriesExistence[i].image?.public_id) {
-        await cloudinary.api.delete_resources_by_prefix(
-          `${process.env.cloud_folder}/SubCategories/${checkSubCategoriesExistence[i].customID}`
-        );
-        await cloudinary.api.delete_folder(
-          `${process.env.cloud_folder}/SubCategories/${checkSubCategoriesExistence[i].customID}`
-        );
-      }
-    }
+  //It occurs throw hooks in plugin
 
-    const deletedSubCategories = await subCategoryModel.deleteMany({
-      categoryID: _id,
-    });
-    if (!deletedSubCategories.deletedCount) {
-      return next(
-        new Error("Failed to delete subCategories !", { cause: 500 })
-      );
-    }
-  }
   //host
 
   const deletedCategory = await categoryModel.findByIdAndDelete(_id);

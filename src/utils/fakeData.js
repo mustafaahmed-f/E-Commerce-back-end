@@ -53,7 +53,7 @@ export const fakeSubCategoriesDataGenerator = async () => {
       slug: "",
       createdBy: "65206bde187c71d9a1a1a539",
       customID: nanoid(),
-      categoryID: "6522a166729b40027df17243",
+      categoryID: "6522a166729b40027df17245",
     };
     subCategory.slug = slugify(subCategory.name, "_");
 
@@ -88,7 +88,7 @@ export const fakeBrandsDataGenerator = async () => {
 export const fakeProductsDataGenerator = async () => {
   for (let i = 0; i < 10; i++) {
     let product = {
-      name: faker.commerce.productName(),
+      name: "Pro_" + faker.commerce.productName(),
       description: faker.commerce.productDescription(),
       slug: "",
       createdBy: "65206bde187c71d9a1a1a539",
@@ -98,9 +98,9 @@ export const fakeProductsDataGenerator = async () => {
       stock: faker.number.int({ min: 10, max: 50 }),
       customID: nanoid(),
       colors: [faker.color.human(), faker.color.human(), faker.color.human()],
-      categoryID: "6522a166729b40027df17243",
-      subCategoryID: "6522fa0c4cfeccc92ab10792",
-      brandID: "6522c3dc61ac11c0cc18d685",
+      categoryID: "6522a166729b40027df17245",
+      subCategoryID: "6522fa0c4cfeccc92ab107a2",
+      brandID: "6522c3dc61ac11c0cc18d69b",
     };
     product.slug = slugify(product.name, "_");
     product.paymentPrice = product.price * (1 - product.discount / 100);

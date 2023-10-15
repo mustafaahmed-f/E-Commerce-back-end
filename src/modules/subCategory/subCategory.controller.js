@@ -9,6 +9,14 @@ import { ApiFeatures } from "../../utils/apiFeatures.js";
 import productModel from "../../../DB/models/productModel.js";
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 
+const getEverySubCategory = asyncHandler(async (req, res, next) => {
+  const subCategories = await subCategoryModel.find();
+  if (!subCategories.length) {
+    return next(new Error("No subCategories were found !", { cause: 404 }));
+  }
+  res.status(200).json({ message: "Done", subCategories });
+});
+
 const addSubCategory = asyncHandler(async (req, res, next) => {
   const { name } = req.body;
   const { categoryId } = req.query;
@@ -47,6 +55,7 @@ const addSubCategory = asyncHandler(async (req, res, next) => {
     categoryID: categoryId,
     customID,
     image: { public_id, secure_url },
+    createdBy: req.user.id,
   });
 
   if (!subCategory) {
@@ -199,6 +208,7 @@ const updateSubCategory = asyncHandler(async (req, res, next) => {
   }
 
   subCategory.categoryID = newCategory._id;
+  subCategory.updatedBy = req.user.id;
   await subCategory.save();
   return res.status(200).json({ message: "Done", subCategory });
 });
@@ -227,34 +237,7 @@ const deleteSubCategory = asyncHandler(async (req, res, next) => {
   }
 
   //deleting related products
-  const checkProductsExistence = await productModel.find({
-    subCategoryID: subCategoryId,
-  });
-  if (checkProductsExistence.length) {
-    // Delete related images
-    for (let i = 0; i < checkProductsExistence.length; i++) {
-      if (
-        checkProductsExistence[i].images?.public_id ||
-        checkProductsExistence[i].mainImage?.public_id
-      ) {
-        await cloudinary.api.delete_resources_by_prefix(
-          `${process.env.cloud_folder}/Products/${checkProductsExistence[i].customID}`
-        );
-        await cloudinary.api.delete_folder(
-          `${process.env.cloud_folder}/Products/${checkProductsExistence[i].customID}`
-        );
-      }
-    }
-
-    const deletedRelatedProducts = await productModel.deleteMany({
-      subCategoryID: _id,
-    });
-    if (!deletedRelatedProducts.deletedCount) {
-      return next(
-        new Error("Failed to delete related products!", { cause: 500 })
-      );
-    }
-  }
+  //It occurs throw hooks in plugin
 
   if (subCategory.image?.public_id) {
     await cloudinary.api.delete_resources_by_prefix(
@@ -294,4 +277,5 @@ export {
   updateSubCategory,
   deleteSubCategory,
   getSpecificSubCategory,
+  getEverySubCategory,
 };

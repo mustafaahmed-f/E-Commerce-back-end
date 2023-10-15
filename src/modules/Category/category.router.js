@@ -10,6 +10,10 @@ import { auth } from "../../middlewares/auth.js";
 import { userRole } from "../../utils/userRoles.js";
 
 router.get(
+  "/getEveryCategory",
+  asyncHandler(categoryController.getEveryCategory)
+);
+router.get(
   "/getAllCategories",
   asyncHandler(categoryController.getAllCategories)
 );
@@ -17,6 +21,14 @@ router.get(
   "/getSpecificCategory/:categoryID",
   asyncHandler(categoryController.getSpecificCategory)
 );
+
+router.delete(
+  "/deleteCategory",
+  auth([userRole.superAdmin]),
+  validation(validators.deleteCategory),
+  asyncHandler(categoryController.deleteCategory)
+);
+
 //===================================================================
 //===================================================================
 router.use(auth([userRole.admin, userRole.superAdmin]));
@@ -32,11 +44,6 @@ router.put(
   uploadFile(fileTypeValidation.image).single("image"),
   validation(validators.updateCategory),
   asyncHandler(categoryController.updateCategory)
-);
-router.delete(
-  "/deleteCategory",
-  validation(validators.deleteCategory),
-  asyncHandler(categoryController.deleteCategory)
 );
 
 export default router;

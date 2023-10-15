@@ -22,7 +22,7 @@ export const asyncHandler = (fn) => {
         );
 
         if (!user) {
-          return next(new Error("Error!!", { cause: 500 }));
+          return next(new Error("Token in-valid !!", { cause: 500 }));
         }
         return next(
           new Error(
@@ -134,6 +134,11 @@ async function removeResources(req) {
     if (req.imagePath) {
       await cloudinary.api.delete_resources_by_prefix(req.imagePath);
       await cloudinary.api.delete_folder(req.imagePath);
+    }
+    if (req.additionalImages) {
+      for (const image of req.additionalImages) {
+        await cloudinary.uploader.destroy(image.public_id);
+      }
     }
   }
 }

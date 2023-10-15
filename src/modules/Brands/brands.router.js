@@ -9,11 +9,22 @@ import { fileTypeValidation } from "../../utils/allowedFileTypes.js";
 import { auth } from "../../middlewares/auth.js";
 import { userRole } from "../../utils/userRoles.js";
 
+router.get("/getEveryBrand", asyncHandler(brandsController.getEveryBrand));
 router.get("/getAllBrands", asyncHandler(brandsController.getAllBrands));
 router.get(
   "/getSpecificBrand/:_id",
   validation(validators.getSpecificBrand),
   asyncHandler(brandsController.getSpecificBrand)
+);
+
+//===================================================================
+//===================================================================
+
+router.delete(
+  "/deleteBrand",
+  auth([userRole.superAdmin]),
+  validation(validators.deleteBrand),
+  asyncHandler(brandsController.deleteBrand)
 );
 
 //===================================================================
@@ -31,12 +42,6 @@ router.put(
   uploadFile(fileTypeValidation.image).single("image"),
   validation(validators.updateBrand),
   asyncHandler(brandsController.updateBrand)
-);
-
-router.delete(
-  "/deleteBrand",
-  validation(validators.deleteBrand),
-  asyncHandler(brandsController.deleteBrand)
 );
 
 export default router;

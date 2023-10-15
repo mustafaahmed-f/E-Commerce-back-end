@@ -25,7 +25,7 @@ const productSchema = new Schema(
     stock: { type: Number, required: true, default: 0 },
     soldItems: { type: Number, default: 0 },
     totalAmount: { type: Number, default: 0 },
-
+    customID: String,
     images: [
       {
         secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
@@ -45,7 +45,6 @@ const productSchema = new Schema(
     brandID: { type: Types.ObjectId, ref: "Brands", required: true },
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
     updatedBy: { type: Types.ObjectId, ref: "User" },
-    deletedBy: { type: Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

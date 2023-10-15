@@ -35,15 +35,10 @@ export const signUp = async (req, res, next) => {
     return next(new Error("Email must be unique!", { cause: 400 }));
   }
 
-  const checkDublicatedPhoneNumber = await userModel.findOne({ phoneNumber });
-  if (checkDublicatedPhoneNumber) {
-    return next(new Error("Phone number must be unique", { cause: 400 }));
-  }
-
-  const hashedPassword = await bcrypt.hashSync(
-    password,
-    parseInt(process.env.SALT_ROUND)
-  );
+  // const hashedPassword = await bcrypt.hashSync(
+  //   password,
+  //   parseInt(process.env.SALT_ROUND)
+  // );
 
   const customID = nanoid();
 
@@ -68,7 +63,7 @@ export const signUp = async (req, res, next) => {
   const newUser = {
     userName,
     email,
-    password: hashedPassword,
+    password,
     phoneNumber,
     role,
     gender,
@@ -77,13 +72,9 @@ export const signUp = async (req, res, next) => {
     profileImage: { secure_url: secure_url_user, public_id: public_id_user },
   };
 
-  const addUser = await userModel.create(newUser);
-  req.createdDoc = {
-    model: userModel,
-    _id: addUser._id,
-  };
+  const addUser = new userModel(newUser);
 
-  if (!newUser) {
+  if (!addUser) {
     return next(new Error("Failed to add user", { cause: 400 }));
   }
 
@@ -91,6 +82,11 @@ export const signUp = async (req, res, next) => {
     model: userModel,
     _id: addUser._id,
   };
+
+  const savedUser = await addUser.save();
+  if (!savedUser) {
+    return next(new Error("Failed to save user", { cause: 400 }));
+  }
 
   const confirmCode = nanoid();
   const hashedCode = await bcrypt.hashSync(
@@ -219,8 +215,18 @@ export const firstAddAddress = async (req, res, next) => {
     return next(new Error("Failed to add address", { cause: 400 }));
   }
 
-  addUserAddress.addresses.push(addAddress._id);
-  await addUserAddress.save();
+  const pushAddress = await user_addressModel.findByIdAndUpdate(
+    addUserAddress._id,
+    {
+      $push: { addresses: addAddress._id },
+    },
+    { new: true }
+  );
+
+  if (!pushAddress) {
+    await addressModel.findByIdAndDelete(addAddress._id);
+    return next(new Error("Failed to add address", { cause: 400 }));
+  }
 
   req.createdDoc1 = {
     model: user_addressModel,
@@ -236,6 +242,8 @@ export const firstAddAddress = async (req, res, next) => {
   );
 
   if (!updatedUser) {
+    await addressModel.findByIdAndDelete(addAddress._id);
+    await user_addressModel.findByIdAndDelete(addUserAddress._id);
     return next(new Error("Failed to add address", { cause: 400 }));
   }
 
@@ -296,8 +304,13 @@ export const confirmEmail = async (req, res, next) => {
   );
 
   if (!updatedToken) {
-    user.isConfirmed = false;
-    await user.save();
+    const updateUser = await userModel.findByIdAndUpdate(user._id, {
+      isConfirmed: false,
+      numOfConfirmRequests: 0,
+    });
+    if (!updateUser) {
+      return res.send("Error !!");
+    }
     return res.send("Error !!");
   }
 
@@ -457,8 +470,14 @@ export const unsubscribe = async (req, res, next) => {
     if (!deleteFinalAddress) {
       return res.send("Failed to delete Addresses!");
     }
-    user.numOfAddresses = 0;
-    await user.save();
+    const updateUser = await userModel.findByIdAndUpdate(user._id, {
+      numOfAddresses: 0,
+    });
+    if (!updateUser) {
+      return next(
+        new Error("Failed to update num. of addresses !", { cause: 500 })
+      );
+    }
   }
 
   const deletedTokens = await tokenModel.findOneAndDelete({ user_id: user.id });
@@ -477,7 +496,6 @@ export const unsubscribe = async (req, res, next) => {
 //============================================================================
 
 export const forgotPassword = async (req, res, next) => {
-  //TODO : make haveResetPassword : false
   const { email } = req.body;
 
   req.continueApi = true;
@@ -538,13 +556,6 @@ export const forgotPassword = async (req, res, next) => {
 //============================================================================
 
 export const setNewPassword = async (req, res, next) => {
-  // TODO : check first if forgetCode is not null .. if it is null return error
-  //TODO : make forgetCode : null .. to allow reset password only one time.
-
-  // User will be redirected to the reset page of the front end . Front end will recieve the token
-  // From the params of reset link in the email . This token will be send in query with the new Password
-  // in the query of the set new password API.
-
   const { token } = req.query;
   const { newPassword } = req.body;
 
@@ -590,10 +601,13 @@ export const setNewPassword = async (req, res, next) => {
     );
   }
 
-  const hashedNewPass = await bcrypt.hashSync(
-    newPassword,
-    parseInt(process.env.SALT_ROUND)
+  const updatedUser = await userModel.findOneAndUpdate(
+    { email: decoded.email },
+    { password: newPassword }
   );
+  if (!updatedUser) {
+    return next(new Error("Failed", { cause: 500 }));
+  }
 
   const updateToken = await tokenModel.findOneAndUpdate(
     { user_id: user.id },
@@ -602,14 +616,6 @@ export const setNewPassword = async (req, res, next) => {
   );
 
   if (!updateToken) {
-    return next(new Error("Failed", { cause: 500 }));
-  }
-
-  const updatedUser = await userModel.findOneAndUpdate(
-    { email: decoded.email },
-    { password: hashedNewPass }
-  );
-  if (!updatedUser) {
     return next(new Error("Failed", { cause: 500 }));
   }
 
@@ -664,9 +670,13 @@ export const logIn = async (req, res, next) => {
     // expiresIn: 20,
   });
 
-  const loginUser = await userModel.findByIdAndUpdate(user._id, {
-    status: "online",
-  });
+  //user updateOne
+  const loginUser = await userModel.updateOne(
+    { _id: user._id },
+    {
+      status: "online",
+    }
+  );
   const loginToken = await tokenModel.findOneAndUpdate(
     { user_id: user._id },
     {

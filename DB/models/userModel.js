@@ -1,4 +1,5 @@
 import mongoose, { Schema, model } from "mongoose";
+import bcrypt from "bcrypt";
 
 const userSchema = new Schema(
   {
@@ -70,7 +71,25 @@ userSchema.virtual("Addresses", {
   foreignField: "user_id",
 });
 
-//TODO : virtual populate to address .
+userSchema.pre("save", function () {
+  this.password = bcrypt.hashSync(
+    this.password,
+    parseInt(process.env.SALT_ROUND)
+  );
+});
+
+userSchema.post(
+  "findOneAndUpdate",
+
+  async function () {
+    const user = await this.model.findOne(this.getQuery());
+    try {
+      await user.save();
+    } catch (error) {
+      console.log(error);
+    }
+  }
+);
 
 const userModel = model.User || mongoose.model("User", userSchema);
 

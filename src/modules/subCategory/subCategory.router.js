@@ -9,10 +9,21 @@ import { asyncHandler } from "../../utils/errorHandler.js";
 import { auth } from "../../middlewares/auth.js";
 import { userRole } from "../../utils/userRoles.js";
 
+router.get("/getEverySubCategory", subCategoriesController.getEverySubCategory);
 router.get("/getAllSubCategories", subCategoriesController.getAllSubCategories);
 router.get(
   "/getSpecificSubCategory/:subCategoryId",
   asyncHandler(subCategoriesController.getSpecificSubCategory)
+);
+
+//===================================================================
+//===================================================================
+
+router.delete(
+  "/deleteSubCategory",
+  auth([userRole.superAdmin]),
+  validation(validators.deleteSubCategory),
+  subCategoriesController.deleteSubCategory
 );
 //===================================================================
 //===================================================================
@@ -29,11 +40,6 @@ router.put(
   uploadFile(fileTypeValidation.image).single("image"),
   validation(validators.updateSubCategory),
   subCategoriesController.updateSubCategory
-);
-router.delete(
-  "/deleteSubCategory",
-  validation(validators.deleteSubCategory),
-  subCategoriesController.deleteSubCategory
 );
 
 export default router;

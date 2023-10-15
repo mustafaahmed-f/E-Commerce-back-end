@@ -1,4 +1,8 @@
 import mongoose, { Schema, Types, model } from "mongoose";
+import {
+  deleteProductsForCategories,
+  deleteSubCategoriesForCategories,
+} from "../../src/plugins/deletingRelatedDocs.js";
 
 const categorySchema = new Schema(
   {
@@ -16,6 +20,7 @@ const categorySchema = new Schema(
     },
     customID: String,
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
+    updatedBy: { type: Types.ObjectId, ref: "User" },
   },
   {
     timestamps: true,
@@ -30,6 +35,9 @@ categorySchema.virtual("subCategories", {
   localField: "_id",
   foreignField: "categoryID",
 });
+
+categorySchema.plugin(deleteProductsForCategories);
+categorySchema.plugin(deleteSubCategoriesForCategories);
 
 const categoryModel =
   model.Category || mongoose.model("Category", categorySchema);
