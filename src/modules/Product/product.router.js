@@ -7,6 +7,7 @@ import { validation } from "../../middlewares/validation.js";
 import * as validators from "./product.validation.js";
 import { uploadFile } from "../../services/multer.cloud.js";
 import { fileTypeValidation } from "../../utils/allowedFileTypes.js";
+import multer from "multer";
 
 const router = Router();
 
@@ -16,6 +17,13 @@ router.get(
   "/getSpecificProduct/:_id",
   validation(validators.getSpecificProduct),
   asyncHandler(productConroller.getSpecificProduct)
+);
+
+router.delete(
+  "/deleteProduct",
+  auth([userRole.superAdmin]),
+  validation(validators.deleteProduct),
+  asyncHandler(productConroller.deleteProduct)
 );
 
 //===================================================================
@@ -35,13 +43,15 @@ router.post(
 );
 router.put(
   "/updateProduct",
+  uploadFile(fileTypeValidation.image).single("image"),
   validation(validators.updateProduct),
   asyncHandler(productConroller.updateProduct)
 );
+
 router.delete(
-  "/deleteProduct",
-  validation(validators.deleteProduct),
-  asyncHandler(productConroller.deleteProduct)
+  "/removeSpecificSecondaryImage",
+  validation(validators.removeSpecificSecondaryImage),
+  asyncHandler(productConroller.removeSpecificSecondaryImage)
 );
 
 export default router;

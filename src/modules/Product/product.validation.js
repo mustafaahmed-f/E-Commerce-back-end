@@ -2,58 +2,72 @@ import joi from "joi";
 import { generalValidation } from "../../middlewares/validation.js";
 
 export const addProduct = {
-  body: joi.object({
-    name: joi
-      .string()
-      .min(2)
-      .max(35)
-      .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/)),
-    colors: joi
-      .array()
-      .items(
-        joi.string().pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/))
-      ), //Hexadecimal color
-    sizes: joi
-      .array()
-      .items(joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL")),
-    description: joi.string().min(10).max(500),
-    price: joi.number().required(),
-    discount: joi.number(),
-    discountType: joi.string().valid("percentage", "amount"),
-    stock: joi.number().required(),
-  }),
+  body: joi
+    .object({
+      name: joi
+        .string()
+        .min(2)
+        .max(35)
+        .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/))
+        .required(),
+      colors: joi.alternatives([
+        joi.string().pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)), //Hexadecimal color
+        joi
+          .array()
+          .items(
+            joi
+              .string()
+              .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/))
+          ),
+      ]),
+      sizes: joi.alternatives([
+        joi
+          .array()
+          .items(joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL")),
+        joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
+      ]),
+
+      description: joi.string().min(10).max(500),
+      price: joi.number().required(),
+      discount: joi.number(),
+      discountType: joi.string().valid("percentage", "amount"),
+      discountPeriod: joi.number().min(0),
+      stock: joi.number().required(),
+    })
+    .required(),
   headers: joi
     .object({
       authorization: generalValidation.authorization,
     })
     .required()
     .unknown(true),
-  query: joi.object({
-    categoryID: generalValidation._id,
-    subCategoryID: generalValidation._id,
-    brandID: generalValidation._id,
-  }),
+  query: joi
+    .object({
+      categoryID: generalValidation._id.required(),
+      subCategoryID: generalValidation._id.required(),
+      brandID: generalValidation._id.required(),
+    })
+    .required(),
 };
 
 export const uploadImages = {
-  query: joi.object({
-    _id: generalValidation._id,
-  }),
-  headers: joi
+  query: joi
     .object({
-      authorization: generalValidation.authorization,
+      _id: generalValidation._id.required(),
+      public_id: joi.alternatives([
+        joi
+          .string()
+          .pattern(new RegExp(/^eCommerce\/Products\/.+\/[A-Za-z0-9]+$/)),
+        joi
+          .array()
+          .items(
+            joi
+              .string()
+              .pattern(new RegExp(/^eCommerce\/Products\/.+\/[A-Za-z0-9]+$/))
+          ),
+      ]),
     })
-    .required()
-    .unknown(true),
-};
-
-export const updateBrand = {
-  body: joi.object({
-    name: generalValidation.name,
-  }),
-  query: joi.object({
-    _id: generalValidation._id,
-  }),
+    .required(),
   headers: joi
     .object({
       authorization: generalValidation.authorization,
@@ -63,9 +77,11 @@ export const updateBrand = {
 };
 
 export const deleteProduct = {
-  query: joi.object({
-    _id: generalValidation._id,
-  }),
+  query: joi
+    .object({
+      _id: generalValidation._id.required(),
+    })
+    .required(),
   headers: joi
     .object({
       authorization: generalValidation.authorization,
@@ -76,6 +92,80 @@ export const deleteProduct = {
 
 export const getSpecificProduct = {
   params: joi.object({
-    _id: generalValidation._id,
+    _id: generalValidation._id.required(),
   }),
+};
+
+export const updateProduct = {
+  body: joi
+    .object({
+      name: joi
+        .string()
+        .min(2)
+        .max(35)
+        .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/)),
+      colors: joi.alternatives([
+        joi.string().pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)),
+        joi
+          .array()
+          .items(
+            joi
+              .string()
+              .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/))
+          ),
+      ]),
+      sizes: joi.alternatives([
+        joi
+          .array()
+          .items(joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL")),
+        joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
+      ]),
+      description: joi.string().min(10).max(500),
+      price: joi.number(),
+      discount: joi.number(),
+      discountType: joi.string().valid("percentage", "amount"),
+      discountPeriod: joi.number().min(0),
+      stock: joi.number(),
+    })
+    .required(),
+  query: joi
+    .object({
+      _id: generalValidation._id.required(),
+      categoryID: generalValidation._id,
+      subCategoryID: generalValidation._id,
+      brandID: generalValidation._id,
+    })
+    .required(),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
+};
+
+export const removeSpecificSecondaryImage = {
+  query: joi
+    .object({
+      _id: generalValidation._id.required(),
+      public_id: joi.alternatives([
+        joi
+          .string()
+          .pattern(new RegExp(/^eCommerce\/Products\/.+\/[A-Za-z0-9]+$/)),
+        joi
+          .array()
+          .items(
+            joi
+              .string()
+              .pattern(new RegExp(/^eCommerce\/Products\/.+\/[A-Za-z0-9]+$/))
+          ),
+      ]),
+    })
+    .required(),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
 };

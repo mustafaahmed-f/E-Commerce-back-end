@@ -34,7 +34,7 @@ export const generalValidation = {
     .min(2)
     .max(20)
     .pattern(new RegExp(/^[a-zA-Z ]{2,20}$/)),
-  _id: objectId().required(),
+  _id: objectId(),
   token: joi
     .string()
     .pattern(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/),
