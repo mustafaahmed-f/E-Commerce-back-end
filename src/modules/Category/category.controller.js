@@ -144,13 +144,7 @@ export const updateCategory = async (req, res, next) => {
 
 export const deleteCategory = async (req, res, next) => {
   const { _id } = req.query;
-  const checkCreator = await categoryModel.findOne({
-    _id,
-    createdBy: req.user.id,
-  });
-  if (!checkCreator && req.user.role != userRole.superAdmin) {
-    return next(new Error("You can't delete this category!", { cause: 400 }));
-  }
+  //Only superAdmin can delete product
 
   //DB
   //deleting related products

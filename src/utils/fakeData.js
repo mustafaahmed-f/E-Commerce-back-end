@@ -5,6 +5,8 @@ import categoryModel from "../../DB/models/categoryModel.js";
 import subCategoryModel from "../../DB/models/subCategoryModel.js";
 import brandsModel from "../../DB/models/brandsModel.js";
 import productModel from "../../DB/models/productModel.js";
+import userModel from "../../DB/models/userModel.js";
+import tokenModel from "../../DB/models/tokenModel.js";
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 
 //===================================================================
@@ -107,5 +109,31 @@ export const fakeProductsDataGenerator = async () => {
 
     const newProduct = new productModel(product);
     await newProduct.save();
+  }
+};
+
+//===================================================================
+//====================== Users ======================================
+//===================================================================
+
+export const fakeUsersDataGenerator = async () => {
+  for (let i = 0; i < 10; i++) {
+    let user = {
+      userName: faker.person.fullName().split(" ").join(""),
+      email: faker.internet.email(),
+      password: "Aaaa@123",
+      role: "user",
+      customID: nanoid(),
+      phoneNumber: faker.phone.number(),
+      gender: faker.person.sex(),
+      isConfirmed: true,
+    };
+    const newUser = new userModel(user);
+    const savedUser = await newUser.save();
+    let userToken = {
+      user_id: savedUser._id,
+    };
+    const newUserToken = new tokenModel(userToken);
+    await newUserToken.save();
   }
 };

@@ -51,6 +51,17 @@ export const deleteProduct = async (req, res, next) => {
   if (!product) {
     return next(new Error("No product was found !", { cause: 404 }));
   }
+
+  //Only admin added product and SuperAdmin can delete product:
+  const checkCreator = await productModel.findOne({
+    _id,
+    createdBy: req.user.id,
+  });
+  if (!checkCreator) {
+    if (req.user.role != userRole.superAdmin) {
+      return next(new Error("You can't delete this product !", { cause: 400 }));
+    }
+  }
   //delete related images :
   if (product.images?.length || product.mainImage?.public_id) {
     await cloudinary.api.delete_resources_by_prefix(

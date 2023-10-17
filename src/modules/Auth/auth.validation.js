@@ -24,7 +24,6 @@ export const signUp = {
       role: joi.string().valid("user", "admin", "superAdmin"),
       gender: joi.string().valid("male", "female"),
       birthDate: joi.date().iso().less("now"),
-      token: generalValidation.token,
     })
     .required(),
 };

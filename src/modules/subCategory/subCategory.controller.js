@@ -219,16 +219,6 @@ const updateSubCategory = asyncHandler(async (req, res, next) => {
 const deleteSubCategory = asyncHandler(async (req, res, next) => {
   const { subCategoryId } = req.query;
 
-  const checkCreator = await subCategoryModel.findOne({
-    _id: subCategoryId,
-    createdBy: req.user.id,
-  });
-
-  if (!checkCreator && req.user.role != userRole.superAdmin) {
-    return next(
-      new Error("You can't delete this sub-category!", { cause: 400 })
-    );
-  }
   const subCategory = await subCategoryModel.findById(subCategoryId);
   const category = await categoryModel.findById(subCategory.categoryID);
 

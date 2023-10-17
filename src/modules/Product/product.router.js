@@ -7,7 +7,6 @@ import { validation } from "../../middlewares/validation.js";
 import * as validators from "./product.validation.js";
 import { uploadFile } from "../../services/multer.cloud.js";
 import { fileTypeValidation } from "../../utils/allowedFileTypes.js";
-import multer from "multer";
 
 const router = Router();
 
