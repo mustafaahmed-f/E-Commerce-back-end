@@ -660,10 +660,13 @@ export const logIn = async (req, res, next) => {
 
   //check if user is deactivated :
   if (user.deactivated === true) {
-    const activeUser = await userModel.findByIdAndUpdate(user._id, {
-      deactivated: false,
-    });
-    if (!activeUser) {
+    const activeUser = await userModel.updateOne(
+      { _id: user._id },
+      {
+        deactivated: false,
+      }
+    );
+    if (!activeUser.modifiedCount) {
       return next(new Error("Error!!", { cause: 500 }));
     }
   }

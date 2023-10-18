@@ -1,4 +1,3 @@
-import { populate } from "dotenv";
 import userModel from "../../../DB/models/userModel.js";
 import { ApiFeatures } from "../../utils/apiFeatures.js";
 import cloudinary from "../../utils/cloudinary.js";
@@ -299,6 +298,49 @@ export const updateAddress = async (req, res, next) => {
     country,
     is_default,
   } = req.body;
+
+  const checkAddressExistence = await addressModel.findOne({ _id });
+  if (!checkAddressExistence) {
+    return next(new Error("Address is not found", { cause: 400 }));
+  }
+
+  //check multiple default addresses:
+
+  const userAddresses = await user_addressModel
+    .findOne({
+      user_id: req.user.id,
+    })
+    .populate("addresses");
+
+  //To avoid multiple default addresses
+  for (let i = 0; i < userAddresses.addresses.length; i++) {
+    if (userAddresses.addresses[i]?.is_default === true && is_default == true) {
+      return next(new Error("You can only have one default address"));
+    }
+  }
+
+  const updateAddress = await addressModel.findByIdAndUpdate(
+    _id,
+    {
+      unit_number,
+      street_number,
+      region,
+      city,
+      postal_code,
+      address_line1,
+      address_line2,
+      country,
+      is_default,
+    },
+    { new: true }
+  );
+  if (!updateAddress) {
+    return next(new Error("Failed to update address", { cause: 400 }));
+  }
+  return res.status(200).json({
+    message: "Address has been updated successfully !!",
+    address: updateAddress,
+  });
 };
 
 //================================================================
@@ -306,4 +348,220 @@ export const updateAddress = async (req, res, next) => {
 
 export const deleteAddress = async (req, res, next) => {
   const { _id } = req.query;
+
+  const updateUserAddresses = await user_addressModel.findOneAndUpdate(
+    {
+      user_id: req.user.id,
+    },
+    {
+      $pull: { addresses: _id },
+    }
+  );
+  if (!updateUserAddresses) {
+    return next(
+      new Error("Failed to delete address", {
+        cause: 400,
+      })
+    );
+  }
+
+  const deleteAddress = await addressModel.findByIdAndDelete(_id);
+  if (!deleteAddress) {
+    return next(
+      new Error("Failed to delete address or address is not found", {
+        cause: 400,
+      })
+    );
+  }
+
+  const updateUser = await userModel.findByIdAndUpdate(req.user.id, {
+    $inc: { numOfAddresses: -1 },
+  });
+
+  return res
+    .status(200)
+    .json({ message: "Address has been deleted successfully" });
+};
+
+//================================================================
+//================================================================
+
+export const changeProfileImage = async (req, res, next) => {
+  const user = await userModel.findById(req.user.id);
+  if (!user.profileImage.public_id) {
+    return next(new Error("You don't have a profile image", { cause: 400 }));
+  }
+  await cloudinary.uploader.destroy(user.profileImage.public_id);
+  const { secure_url, public_id } = await cloudinary.uploader.upload(
+    req.file.path,
+    {
+      folder: `${process.env.cloud_folder}/Users/${user.customID}`,
+    }
+  );
+  const updateUser = await userModel.updateOne(
+    { _id: req.user.id },
+    {
+      profileImage: {
+        secure_url,
+        public_id,
+      },
+    }
+  );
+  if (!updateUser) {
+    return next(new Error("Failed to update profile image", { cause: 400 }));
+  }
+  return res.status(200).json({
+    message: "Profile image has been changed successfully !!",
+  });
+};
+
+//================================================================
+//================================================================
+
+export const addProfileImage = async (req, res, next) => {
+  const user = await userModel.findById(req.user.id);
+  if (user.profileImage.public_id) {
+    return next(new Error("Profile image already exists", { cause: 400 }));
+  }
+  const { secure_url, public_id } = await cloudinary.uploader.upload(
+    req.file.path,
+    {
+      folder: `${process.env.cloud_folder}/Users/${user.customID}`,
+    }
+  );
+  const updateUser = await userModel.updateOne(
+    { _id: req.user.id },
+    {
+      profileImage: {
+        secure_url,
+        public_id,
+      },
+    }
+  );
+  if (!updateUser) {
+    await cloudinary.uploader.destroy(public_id);
+    return next(new Error("Failed to upload profile image", { cause: 400 }));
+  }
+  return res.status(200).json({
+    message: "Profile image has been uploaded successfully !!",
+  });
+};
+
+//================================================================
+//================================================================
+
+export const deleteProfileImage = async (req, res, next) => {
+  const user = await userModel.findById(req.user.id);
+  if (!user.profileImage.public_id) {
+    return next(new Error("You don't have a profile image", { cause: 400 }));
+  }
+  await cloudinary.uploader.destroy(user.profileImage.public_id);
+  const updateUser = await userModel.updateOne(
+    { _id: req.user.id },
+    {
+      profileImage: {
+        secure_url: null,
+        public_id: null,
+      },
+    }
+  );
+  if (!updateUser) {
+    return next(new Error("Failed to delete profile image", { cause: 400 }));
+  }
+  return res.status(200).json({
+    message: "Profile image has been deleted successfully !!",
+  });
+};
+
+//================================================================
+//================================================================
+
+export const changePassword = async (req, res, next) => {
+  const { password } = req.body;
+  const user = await userModel.findById(req.user.id);
+  user.password = password;
+  await user.save();
+  return res.status(200).json({
+    message: "Password has been changed successfully !!",
+  });
+};
+
+//================================================================
+//================================================================
+
+export const deactivateUser = async (req, res, next) => {
+  const user = await userModel.updateOne(
+    { _id: req.user.id },
+    {
+      deactivated: true,
+      status: "offline",
+    }
+  );
+  if (!user.modifiedCount) {
+    return next(
+      new Error("User is not found or failed to be deactivated!", {
+        cause: 400,
+      })
+    );
+  }
+  return res.status(200).json({
+    message: "User has been deactivated successfully !!",
+  });
+};
+
+//================================================================
+//================================================================
+
+export const logOut = async (req, res, next) => {
+  const user = await userModel.updateOne(
+    { _id: req.user.id, status: "online" },
+    {
+      status: "offline",
+    }
+  );
+  if (!user.modifiedCount) {
+    return next(
+      new Error("User is not found or already logged out!", {
+        cause: 400,
+      })
+    );
+  }
+  return res.status(200).json({
+    message: "User has been logged out successfully !!",
+  });
+};
+
+//================================================================
+//================================================================
+
+export const updateUser = async (req, res, next) => {
+  const { userName, phoneNumber, gender, birthDate } = req.body;
+  //check dublicated userName:
+  const checkDublUserName = await userModel.findOne({ userName });
+  if (checkDublUserName) {
+    return next(new Error("User name already exists", { cause: 400 }));
+  }
+  const user = await userModel.updateOne(
+    { _id: req.user.id },
+    {
+      userName,
+      phoneNumber,
+      gender,
+      birthDate,
+    }
+  );
+  if (!user.modifiedCount) {
+    return next(
+      new Error("User is not found or failed to be updated!", {
+        cause: 400,
+      })
+    );
+  }
+  const userInfo = await userModel
+    .findOne({ _id: req.user.id })
+    .select("-password");
+  return res.status(200).json({
+    message: "User has been updated successfully !!",
+    user: userInfo,
+  });
 };

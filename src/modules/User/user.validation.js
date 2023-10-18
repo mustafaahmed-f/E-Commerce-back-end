@@ -44,11 +44,17 @@ export const getSpecificUser = userIDandTokenValidation;
 
 export const blockUser = userIDandTokenValidation;
 
-export const changeProfileImage = userIDandTokenValidation;
+export const changeProfileImage = {
+  headers: userIDandTokenValidation.headers,
+};
 
-export const deactivateUser = userIDandTokenValidation;
+export const deactivateUser = {
+  headers: userIDandTokenValidation.headers,
+};
 
-export const logOut = userIDandTokenValidation;
+export const logOut = {
+  headers: userIDandTokenValidation.headers,
+};
 
 export const changeRole = {
   query: userIDandTokenValidation.query,
@@ -62,7 +68,6 @@ export const changeRole = {
 
 export const updateUser = {
   //add validation for address
-  query: userIDandTokenValidation.query,
   headers: userIDandTokenValidation.headers,
   body: joi
     .object({
@@ -84,7 +89,6 @@ export const deleteAddress = userIDandTokenValidation;
 export const updateAddress = {
   query: joi.object({
     _id: generalValidation._id.required(),
-    address_id: generalValidation._id.required(),
   }),
   headers: userIDandTokenValidation.headers,
   body: joi
@@ -111,7 +115,7 @@ export const updateAddress = {
         .min(3)
         .max(30)
 
-        .pattern(new RegExp(/^[A-Z][a-zA-Z\s]+$/)),
+        .pattern(new RegExp(/^[A-Z0-9][a-zA-Z0-9\s]+$/)),
 
       postal_code: joi.string().min(3).max(30),
       country: joi
@@ -126,7 +130,6 @@ export const updateAddress = {
 };
 
 export const changePassword = {
-  query: userIDandTokenValidation.query,
   headers: userIDandTokenValidation.headers,
   body: joi
     .object({

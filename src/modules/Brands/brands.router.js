@@ -8,6 +8,7 @@ import { uploadFile } from "../../services/multer.cloud.js";
 import { fileTypeValidation } from "../../utils/allowedFileTypes.js";
 import { auth } from "../../middlewares/auth.js";
 import { userRole } from "../../utils/userRoles.js";
+import { checkAvailability } from "../../middlewares/checkAvailability.js";
 
 router.get("/getEveryBrand", asyncHandler(brandsController.getEveryBrand));
 router.get("/getAllBrands", asyncHandler(brandsController.getAllBrands));
@@ -24,13 +25,14 @@ router.delete(
   "/deleteBrand",
   auth([userRole.superAdmin]),
   validation(validators.deleteBrand),
+  checkAvailability,
   asyncHandler(brandsController.deleteBrand)
 );
 
 //===================================================================
 //===================================================================
 router.use(auth([userRole.admin, userRole.superAdmin]));
-
+router.use(checkAvailability);
 router.post(
   "/addBrand",
   uploadFile(fileTypeValidation.image).single("image"),

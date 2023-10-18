@@ -8,6 +8,7 @@ import { validation } from "../../middlewares/validation.js";
 import * as validators from "./category.validation.js";
 import { auth } from "../../middlewares/auth.js";
 import { userRole } from "../../utils/userRoles.js";
+import { checkAvailability } from "../../middlewares/checkAvailability.js";
 
 router.get(
   "/getEveryCategory",
@@ -26,13 +27,14 @@ router.delete(
   "/deleteCategory",
   auth([userRole.superAdmin]),
   validation(validators.deleteCategory),
+  checkAvailability,
   asyncHandler(categoryController.deleteCategory)
 );
 
 //===================================================================
 //===================================================================
 router.use(auth([userRole.admin, userRole.superAdmin]));
-
+router.use(checkAvailability);
 router.post(
   "/addCategory",
   uploadFile(fileTypeValidation.image).single("image"),

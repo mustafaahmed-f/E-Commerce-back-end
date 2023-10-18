@@ -1,4 +1,5 @@
-import { asyncHandler } from "../utils/errorHandler";
+import userModel from "../../DB/models/userModel.js";
+import { asyncHandler } from "../utils/errorHandler.js";
 
 export const checkAvailability = asyncHandler(async (req, res, next) => {
   const user = await userModel.findById(req.user.id);

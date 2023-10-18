@@ -8,6 +8,7 @@ import * as validators from "./subCategory.validation.js";
 import { asyncHandler } from "../../utils/errorHandler.js";
 import { auth } from "../../middlewares/auth.js";
 import { userRole } from "../../utils/userRoles.js";
+import { checkAvailability } from "../../middlewares/checkAvailability.js";
 
 router.get("/getEverySubCategory", subCategoriesController.getEverySubCategory);
 router.get("/getAllSubCategories", subCategoriesController.getAllSubCategories);
@@ -23,12 +24,13 @@ router.delete(
   "/deleteSubCategory",
   auth([userRole.superAdmin]),
   validation(validators.deleteSubCategory),
+  checkAvailability,
   subCategoriesController.deleteSubCategory
 );
 //===================================================================
 //===================================================================
 router.use(auth([userRole.admin, userRole.superAdmin]));
-
+router.use(checkAvailability);
 router.post(
   "/addSubCategory",
   uploadFile(fileTypeValidation.image).single("image"),

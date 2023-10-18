@@ -63,7 +63,7 @@ export const generalValidation = {
       .min(3)
       .max(30)
       .required()
-      .pattern(new RegExp(/^[A-Z][a-zA-Z\s]+$/)),
+      .pattern(new RegExp(/^[A-Z0-9][a-zA-Z0-9\s]+$/)),
     postal_code: joi.string().min(3).max(30),
     country: joi
       .string()
