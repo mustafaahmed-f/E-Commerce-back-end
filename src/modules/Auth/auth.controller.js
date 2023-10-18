@@ -700,7 +700,7 @@ export const logIn = async (req, res, next) => {
 
   return res
     .status(200)
-    .json({ message: "Logged in successfully ", token: Token });
+    .json({ message: "Logged in successfully ", token: Token, user });
 };
 
 //============================================================================

@@ -29,6 +29,9 @@ const couponSchema = new Schema(
         maxUse: {
           type: Number,
         },
+        usedTimes: {
+          type: Number,
+        },
       },
     ],
     fromDate: {
