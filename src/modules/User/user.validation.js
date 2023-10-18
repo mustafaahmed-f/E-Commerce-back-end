@@ -33,6 +33,13 @@ export const getAllUsers = {
 
 export const deleteUser = userIDandTokenValidation;
 
+export const getAddresses = {
+  query: joi.object({
+    _id: generalValidation._id,
+  }),
+  headers: userIDandTokenValidation.headers,
+};
+
 export const getSpecificUser = userIDandTokenValidation;
 
 export const blockUser = userIDandTokenValidation;
@@ -68,13 +75,17 @@ export const updateUser = {
 };
 
 export const addAdress = {
-  query: userIDandTokenValidation.query,
   headers: userIDandTokenValidation.headers,
   body: generalValidation.addAddress.required(),
 };
 
+export const deleteAddress = userIDandTokenValidation;
+
 export const updateAddress = {
-  query: userIDandTokenValidation.query,
+  query: joi.object({
+    _id: generalValidation._id.required(),
+    address_id: generalValidation._id.required(),
+  }),
   headers: userIDandTokenValidation.headers,
   body: joi
     .object({
@@ -109,7 +120,7 @@ export const updateAddress = {
         .max(30)
 
         .pattern(new RegExp(/^[A-Z][a-zA-Z\s]+$/)),
-      is_default: joi.boolean().default(false),
+      is_default: joi.boolean(),
     })
     .required(),
 };

@@ -156,35 +156,35 @@ export function deleteProdoctsForBrands(schema) {
 //==========================   User  ===========================================================
 //==============================================================================================
 
-export function deleteProductsForUser(schema) {
-  schema.pre("findOneAndDelete", async function () {
-    try {
-    } catch (error) {
-      console.log(error);
-    }
-  });
-}
+// export function deleteProductsForUser(schema) {
+//   schema.pre("findOneAndDelete", async function () {
+//     try {
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
+// }
 
 //================================================================
 //================================================================
 
-export function deleteCategoriesForUser(schema) {
-  schema.pre("findOneAndDelete", async function () {
-    try {
-    } catch (error) {
-      console.log(error);
-    }
-  });
-}
+// export function deleteCategoriesForUser(schema) {
+//   schema.pre("findOneAndDelete", async function () {
+//     try {
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
+// }
 
 //================================================================
 //================================================================
 
-export function deleteSubCategoriesForUser(schema) {
-  schema.pre("findOneAndDelete", async function () {
-    try {
-    } catch (error) {
-      console.log(error);
-    }
-  });
-}
+// export function deleteSubCategoriesForUser(schema) {
+//   schema.pre("findOneAndDelete", async function () {
+//     try {
+//     } catch (error) {
+//       console.log(error);
+//     }
+//   });
+// }

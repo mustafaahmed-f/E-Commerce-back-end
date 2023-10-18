@@ -30,9 +30,16 @@ router.put(
 //super admin or owner of the account can use this API
 router.delete(
   "/deleteUser",
-  auth([userRole.superAdmin, userRole.user]),
+  auth([userRole.superAdmin, userRole.user, userRole.admin]),
   validation(validators.deleteUser),
   asyncHandler(userController.deleteUser)
+);
+
+router.get(
+  "/getAddresses",
+  auth([userRole.superAdmin, userRole.user, userRole.admin]),
+  validation(validators.getAddresses),
+  asyncHandler(userController.getAddresses)
 );
 
 //================================================================================
@@ -60,12 +67,22 @@ router.put(
 
 //================================================================================
 
-//the owner of the account only can use these APIs.
-router.use(auth([userRole.user]));
+//the owner of the account only can use these APIs (Owner can be user,admin or super admin !).
+router.use(auth([userRole.superAdmin, userRole.user, userRole.admin]));
 router.post(
   "/addAdress",
-  validation(validators.addAddress),
-  asyncHandler(userController.addAddress)
+  validation(validators.addAdress),
+  asyncHandler(userController.addAdress)
+);
+router.delete(
+  "/deleteAddress",
+  validation(validators.deleteAddress),
+  asyncHandler(userController.deleteAddress)
+);
+router.put(
+  "/updateAddress",
+  validation(validators.updateAddress),
+  asyncHandler(userController.updateAddress)
 );
 router.put(
   //used to change or upload profile image if use doesn't have one

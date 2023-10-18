@@ -7,7 +7,9 @@ import { ApiFeatures } from "../../utils/apiFeatures.js";
 import { userRole } from "../../utils/userRoles.js";
 
 export const getEveryCategory = async (req, res, next) => {
-  const categories = await categoryModel.find();
+  const categories = await categoryModel
+    .find()
+    .populate({ path: "subCategories", model: "SubCategory" });
   if (!categories.length) {
     return res.status(404).json({ message: "No categories were found !" });
   }
@@ -20,7 +22,10 @@ export const getAllCategories = async (req, res, next) => {
     .paignation()
     .filter()
     .select();
-  const categories = await apiFeaturesInstance.mongooseQuery;
+  const categories = await apiFeaturesInstance.mongooseQuery.populate({
+    path: "subCategories",
+    model: "SubCategory",
+  });
 
   if (!categories.length) {
     return res.status(404).json({ message: "No categories were found !" });
@@ -86,7 +91,9 @@ export const addCategory = async (req, res, next) => {
 
 export const getSpecificCategory = async (req, res, next) => {
   const { categoryID } = req.params;
-  const category = await categoryModel.findById(categoryID);
+  const category = await categoryModel
+    .findById(categoryID)
+    .populate({ path: "subCategories", model: "SubCategory" });
   if (!category) {
     return next(new Error("Category is not found!", { cause: 404 }));
   }

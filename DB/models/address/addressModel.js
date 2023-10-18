@@ -9,6 +9,10 @@ const addressSchema = new Schema({
   region: { type: String, required: true },
   postal_code: { type: String },
   country: { type: String, required: true },
+  is_default: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const addressModel = model.Address || mongoose.model("Address", addressSchema);

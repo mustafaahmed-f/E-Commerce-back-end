@@ -10,22 +10,6 @@ import tokenModel from "../../DB/models/tokenModel.js";
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 
 //===================================================================
-//======================== Products =================================
-//===================================================================
-export const fakeProuctDataGenerator = () => {
-  for (let i = 0; i < 10; i++) {
-    const product = {
-      name: faker.commerce.productName(),
-      material: faker.commerce.productMaterial(),
-      description: faker.commerce.productDescription(),
-      price: faker.commerce.price(),
-      image: faker.image.url(),
-    };
-  }
-  console.log(product);
-};
-
-//===================================================================
 //======================== Categories ===============================
 //===================================================================
 
@@ -55,7 +39,7 @@ export const fakeSubCategoriesDataGenerator = async () => {
       slug: "",
       createdBy: "65206bde187c71d9a1a1a539",
       customID: nanoid(),
-      categoryID: "6522a166729b40027df17245",
+      categoryID: "6522a166729b40027df17247",
     };
     subCategory.slug = slugify(subCategory.name, "_");
 

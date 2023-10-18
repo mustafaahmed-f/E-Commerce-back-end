@@ -10,13 +10,8 @@ const user_addressSchema = new Schema({
     {
       type: Schema.Types.ObjectId,
       ref: "Address",
-      required: true,
     },
   ],
-  is_default: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 const user_addressModel =

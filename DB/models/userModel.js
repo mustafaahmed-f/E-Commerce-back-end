@@ -65,11 +65,12 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-userSchema.virtual("Addresses", {
-  ref: "UserAddress",
-  localField: "_id",
-  foreignField: "user_id",
-});
+// userSchema.virtual("user_address", {
+//   ref: "UserAddress",
+//   localField: "_id",
+//   foreignField: "user_id",
+//   justOne: true,
+// });
 
 userSchema.pre("save", function () {
   this.password = bcrypt.hashSync(

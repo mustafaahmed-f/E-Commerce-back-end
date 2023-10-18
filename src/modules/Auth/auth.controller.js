@@ -181,7 +181,12 @@ export const firstAddAddress = async (req, res, next) => {
 
   //If user is confirmed , he should use the add address API in the user module.
   if (user.isConfirmed) {
-    return next(new Error("Token is needed !!", { cause: 400 }));
+    return next(
+      new Error(
+        "This API is used to add address during sign up before confirmation !!",
+        { cause: 400 }
+      )
+    );
   }
 
   const newAddress = {
@@ -193,6 +198,7 @@ export const firstAddAddress = async (req, res, next) => {
     address_line1,
     address_line2,
     country,
+    is_default: is_default ?? false,
   };
 
   const addAddress = await addressModel.create(newAddress);
@@ -207,7 +213,6 @@ export const firstAddAddress = async (req, res, next) => {
 
   const addUserAddress = await user_addressModel.create({
     user_id: user._id,
-    is_default: is_default ?? false,
   });
 
   if (!addUserAddress) {
