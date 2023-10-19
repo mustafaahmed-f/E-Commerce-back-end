@@ -6,6 +6,9 @@ const couponSchema = new Schema(
     couponCode: {
       type: String,
       required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
     },
     couponAmount: {
       type: Number,
@@ -13,12 +16,11 @@ const couponSchema = new Schema(
     },
     isValid: {
       type: Boolean,
-      required: true,
       default: true,
     },
     isPercentage: {
       type: Boolean,
-      required: true,
+      default: false,
     },
     assignedUsers: [
       {
@@ -31,9 +33,11 @@ const couponSchema = new Schema(
         },
         usedTimes: {
           type: Number,
+          default: 0,
         },
       },
     ],
+    assignedProducts: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     fromDate: {
       type: Date,
       required: true,

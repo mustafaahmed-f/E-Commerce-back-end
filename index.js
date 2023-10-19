@@ -18,7 +18,7 @@ config({ path: path.resolve("./config/config.env") });
 
 app.use(express.urlencoded());
 
-deleteNonConfirmedUsers();
+deleteNonConfirmedUsers(); //Monthly check for unconfirmed users.
 
 bootstrap(app, express);
 
