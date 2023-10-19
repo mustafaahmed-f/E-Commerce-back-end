@@ -14,6 +14,7 @@ import {
 } from "./src/utils/fakeData.js";
 import productModel from "./DB/models/productModel.js";
 import subCategoryModel from "./DB/models/subCategoryModel.js";
+import product_itemModel from "./DB/models/product_itemModel.js";
 config({ path: path.resolve("./config/config.env") });
 
 app.use(express.urlencoded());
@@ -33,3 +34,11 @@ bootstrap(app, express);
 // fakeUsersDataGenerator();
 
 // await subCategoryModel.deleteMany({ categoryID: "6522a166729b40027df17245" });
+
+// await product_itemModel.create({
+//   productID: "652bd72e79426fcde4f5c66c",
+//   color: "white",
+//   sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+//   specifications: "test",
+//   stock: 10,
+// });

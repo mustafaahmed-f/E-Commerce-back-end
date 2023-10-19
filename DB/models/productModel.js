@@ -25,9 +25,9 @@ const productSchema = new Schema(
     discountFinished: { type: Boolean },
     paymentPrice: { type: Number, default: 0 },
 
-    totalStock: { type: Number, required: true, default: 0 },
-    totalSoldItems: { type: Number, default: 0 },
-    totalProductAmount: { type: Number, default: 0 },
+    stock: { type: Number, required: true, default: 0 },
+    soldItems: { type: Number, default: 0 },
+    totalAmount: { type: Number, default: 0 },
     customID: String,
     images: [
       {
@@ -40,21 +40,8 @@ const productSchema = new Schema(
       public_id: { type: String, required: false }, //TODO : make required true after adding fake data
     },
 
-    details: [
-      {
-        color: String,
-        sizes: [
-          { type: String, enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] },
-        ],
-        specifications: String,
-        stock: { type: Number, required: true, default: 0 },
-        soldItems: { type: Number, default: 0 },
-        totalAmount: { type: Number, default: 0 },
-      },
-    ],
-
-    // colors: [String],
-    // sizes: [{ type: String, enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] }],
+    colors: [String],
+    sizes: [{ type: String, enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] }],
 
     categoryID: { type: Types.ObjectId, ref: "Category", required: true },
     subCategoryID: { type: Types.ObjectId, ref: "SubCategory", required: true },
@@ -62,8 +49,18 @@ const productSchema = new Schema(
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
     updatedBy: { type: Types.ObjectId, ref: "User" },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true }, //This causes an additional id field to appear in the response body.
+    toObject: { virtuals: true },
+  }
 );
+
+// productSchema.virtual("productItems", {
+//   ref: "Product_item",
+//   localField: "_id",
+//   foreignField: "productID",
+// });
 
 const productModel = model.Product || mongoose.model("Product", productSchema);
 
