@@ -3,17 +3,23 @@ import mongoose, { Schema, Types, model } from "mongoose";
 const product_itemSchema = new Schema(
   {
     productID: { type: Types.ObjectId, ref: "Product", required: true },
+    item_name: { type: String, required: true, trim: true, unique: true }, // Name contains any specifications.
+    item_slug: { type: String, required: true, trim: true, unique: true },
     color: String,
-    sizes: [
-      {
-        type: String,
-        enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
-      },
-    ],
-    specifications: String,
+    size: {
+      type: String,
+      enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+    },
+    specifications: Schema.Types.Mixed, //To make specifications in an object.
     stock: { type: Number, required: true, default: 0 },
     soldItems: { type: Number, default: 0 },
     totalAmount: { type: Number, default: 0 },
+    price: { type: Number, required: true, default: 0 },
+    discount: { type: Number, default: 0 },
+    discountType: { type: String, enum: ["percentage", "amount"] },
+    discountPeriod: Number,
+    discountFinished: { type: Boolean },
+    paymentPrice: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
