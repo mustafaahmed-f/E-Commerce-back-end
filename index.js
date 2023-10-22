@@ -11,6 +11,7 @@ import {
   fakeProductsDataGenerator,
   fakeSubCategoriesDataGenerator,
   fakeUsersDataGenerator,
+  fakeProductItemsDataGenerator,
 } from "./src/utils/fakeData.js";
 import productModel from "./DB/models/productModel.js";
 import subCategoryModel from "./DB/models/subCategoryModel.js";
@@ -31,6 +32,7 @@ bootstrap(app, express);
 // fakeSubCategoriesDataGenerator();
 // fakeBrandsDataGenerator();
 // fakeProductsDataGenerator();
+// fakeProductItemsDataGenerator();
 // fakeUsersDataGenerator();
 
 // await subCategoryModel.deleteMany({ categoryID: "6522a166729b40027df17245" });

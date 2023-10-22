@@ -5,6 +5,8 @@ const product_itemSchema = new Schema(
     productID: { type: Types.ObjectId, ref: "Product", required: true },
     item_name: { type: String, required: true, trim: true, unique: true }, // Name contains any specifications.
     item_slug: { type: String, required: true, trim: true, unique: true },
+    customID: String,
+
     color: String,
     size: {
       type: String,
@@ -20,6 +22,17 @@ const product_itemSchema = new Schema(
     discountPeriod: Number,
     discountFinished: { type: Boolean },
     paymentPrice: { type: Number, default: 0 },
+    images: [
+      {
+        secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
+        public_id: { type: String, required: false }, //TODO : make required true after adding fake data
+      },
+    ],
+    mainImage: {
+      secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
+      public_id: { type: String, required: false }, //TODO : make required true after adding fake data
+    },
+    createdBy: { type: Types.ObjectId, ref: "User", required: true },
   },
   { timestamps: true }
 );

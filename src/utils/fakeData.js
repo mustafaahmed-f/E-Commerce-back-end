@@ -72,27 +72,45 @@ export const fakeBrandsDataGenerator = async () => {
 //===================================================================
 
 export const fakeProductsDataGenerator = async () => {
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 5; i++) {
     let product = {
       name: "Pro_" + faker.commerce.productName(),
-      description: faker.commerce.productDescription(),
+      createdBy: "65206bde187c71d9a1a1a539",
       slug: "",
+      categoryID: "",
+      subCategoryID: "",
+      brandID: "",
+    };
+    product.slug = slugify(product.name, "_");
+
+    const newproduct = new productModel(product);
+    await newproduct.save();
+  }
+};
+
+export const fakeProductItemsDataGenerator = async () => {
+  for (let i = 0; i < 3; i++) {
+    let product_item = {
+      productID: "",
+      item_name: "Pro_item_" + faker.commerce.productName(),
+      description: faker.commerce.productDescription(),
+      item_slug: "",
       createdBy: "65206bde187c71d9a1a1a539",
       price: faker.commerce.price({ min: 20, max: 50000 }),
       discount: faker.number.int({ min: 0, max: 100 }),
       paymentPrice: 0,
       stock: faker.number.int({ min: 10, max: 50 }),
       customID: nanoid(),
-      colors: [faker.color.human(), faker.color.human(), faker.color.human()],
-      categoryID: "6522a166729b40027df17245",
-      subCategoryID: "6522fa0c4cfeccc92ab107a2",
-      brandID: "6522c3dc61ac11c0cc18d69b",
+      colors: faker.color.human(),
+      size: "L",
+      specifications: {}, // Custom specifications
     };
-    product.slug = slugify(product.name, "_");
-    product.paymentPrice = product.price * (1 - product.discount / 100);
+    product_item.item_slug = slugify(product_item.name, "_");
+    product_item.paymentPrice =
+      product_item.price * (1 - product_item.discount / 100);
 
-    const newProduct = new productModel(product);
-    await newProduct.save();
+    const newproduct_item = new product_itemModel(product_item);
+    await newproduct_item.save();
   }
 };
 
