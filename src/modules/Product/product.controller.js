@@ -8,9 +8,12 @@ import cloudinary from "../../utils/cloudinary.js";
 import { customAlphabet } from "nanoid";
 const nanoid = customAlphabet("12345678!_=abcdefghmZxyiolk:*", 15);
 import slugify from "slugify";
+import product_itemModel from "../../../DB/models/product_itemModel.js";
 
 export const getEveryProduct = async (req, res, next) => {
-  const products = await productModel.find();
+  const products = await productModel.find().populate({
+    path: "productItems",
+  });
   if (!products.length) {
     return next(new Error("No products were found !", { cause: 404 }));
   }
@@ -23,7 +26,9 @@ export const getAllProducts = async (req, res, next) => {
     .paignation()
     .filter()
     .select();
-  const products = await apiFeaturesInstance.mongooseQuery;
+  const products = await apiFeaturesInstance.mongooseQuery.populate({
+    path: "productItems",
+  });
   if (!products.length) {
     return next(new Error("No products were found !", { cause: 404 }));
   }
@@ -35,7 +40,9 @@ export const getAllProducts = async (req, res, next) => {
 
 export const getSpecificProduct = async (req, res, next) => {
   const { _id } = req.params;
-  const product = await productModel.findById(_id);
+  const product = await productModel.findById(_id).populate({
+    path: "productItems",
+  });
   if (!product) {
     return next(new Error("No product was found !", { cause: 404 }));
   }
@@ -85,8 +92,10 @@ export const addProduct = async (req, res, next) => {
     description,
     price,
     stock,
-    colors,
-    sizes,
+    color,
+    size,
+    item_name,
+    specifications,
     discount,
     discountType,
     discountPeriod,
@@ -108,45 +117,65 @@ export const addProduct = async (req, res, next) => {
   }
 
   const customID = nanoid();
+  const item_customID = nanoid();
 
   //==================================================================
 
-  let images = [];
+  //check dublicated name for product and product item :
+  const checkProductdublicatedName = await productModel.findOne({
+    name,
+  });
+  if (checkProductdublicatedName) {
+    return next(new Error("Product name is duplicated !", { cause: 400 }));
+  }
+
+  const checkProductItemdublicatedName = await product_itemModel.findOne({
+    item_name,
+  });
+  if (checkProductItemdublicatedName) {
+    return next(new Error("Product Item name is duplicated !", { cause: 400 }));
+  }
+
+  //==================================================================
+
+  //uploading main image :
+
   let mainImage = "";
+  if (req.files?.image?.length) {
+    const { secure_url, public_id } = await cloudinary.uploader.upload(
+      req.files.image[0].path,
+      {
+        folder: `${process.env.cloud_folder}/Products/${customID}/${item_customID}`,
+      }
+    );
+    mainImage = { secure_url: `${secure_url}`, public_id: `${public_id}` };
+  }
+
+  let images = [];
   //check for images
-  if (req.files) {
-    for (const image of req.files) {
-      if (req.files.indexOf(image) === 0) {
-        const { secure_url, public_id } = await cloudinary.uploader.upload(
-          image.path,
-          {
-            folder: `${process.env.cloud_folder}/Products/${customID}`,
-          }
-        );
-        mainImage = { secure_url: `${secure_url}`, public_id: `${public_id}` };
-      }
-      if (req.files.indexOf(image) !== 0) {
-        const { secure_url, public_id } = await cloudinary.uploader.upload(
-          image.path,
-          {
-            folder: `${process.env.cloud_folder}/Products/${customID}`,
-          }
-        );
-        images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
-      }
+  if (req.files?.images?.length) {
+    for (const image of req.files.images) {
+      const { secure_url, public_id } = await cloudinary.uploader.upload(
+        image.path,
+        {
+          folder: `${process.env.cloud_folder}/Products/${customID}/${item_customID}`,
+        }
+      );
+      images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
     }
 
     req.imagePath = `${process.env.cloud_folder}/Products/${customID}`;
   }
-  if (!req.files.length) {
+  if (!req.files.image) {
     return next(
-      new Error("You should at least upload one image !", { cause: 400 })
+      new Error("You should at least upload main image !", { cause: 400 })
     );
   }
 
   //==================================================================
 
   const slug = slugify(name, "_");
+  const item_slug = slugify(item_name, "_");
   let productPaymentPrice = 0;
 
   //check discount and it's type :
@@ -173,8 +202,8 @@ export const addProduct = async (req, res, next) => {
     if (discountPeriod) {
       discountTimer = setTimeout(async function () {
         console.log("period added and finished");
-        await productModel.findOneAndUpdate(
-          { customID },
+        await product_itemModel.findOneAndUpdate(
+          { item_customID },
           {
             discount: null,
             discountType: null,
@@ -189,33 +218,34 @@ export const addProduct = async (req, res, next) => {
     productPaymentPrice = price;
   }
 
-  let productColors = colors;
-  let productSizes = sizes;
-  if (!Array.isArray(colors)) {
-    productColors = [colors];
-  }
-  if (!Array.isArray(sizes)) {
-    productSizes = [sizes];
-  }
-
   const product = await productModel.create({
     name,
     slug,
+    customID,
+    categoryID,
+    subCategoryID,
+    brandID,
+    createdBy: req.user.id,
+  });
+
+  const productItem = await product_itemModel.create({
+    productID: product._id,
+    specifications,
+    item_name,
+    item_customID,
+    item_slug,
     description,
     price,
     discount,
     discountType,
     discountPeriod,
     stock,
-    colors: productColors,
-    sizes: productSizes,
+    color,
+    size,
     paymentPrice: productPaymentPrice,
     customID,
     images,
     mainImage,
-    categoryID,
-    subCategoryID,
-    brandID,
     createdBy: req.user.id,
   });
 
@@ -224,11 +254,16 @@ export const addProduct = async (req, res, next) => {
     _id: product._id,
   };
 
-  if (!product) {
+  req.createdDoc1 = {
+    model: product_itemModel,
+    _id: productItem._id,
+  };
+
+  if (!product || !productItem) {
     //Delete all images:
     if (mainImage || images.length) {
       await cloudinary.api.delete_resources_by_prefix(
-        `${process.env.cloud_folder}/Products/${customID}`
+        `${process.env.cloud_folder}/Products/${customID}/${item_customID}`
       );
       await cloudinary.api.delete_folder(
         `${process.env.cloud_folder}/Products/${customID}`
@@ -238,9 +273,176 @@ export const addProduct = async (req, res, next) => {
     return next(new Error("Failed to add product !", { cause: 404 }));
   }
 
-  res
-    .status(200)
-    .json({ message: "Product has been added successfully !", product });
+  res.status(200).json({
+    message: "Product has been added successfully !",
+    product,
+    productItem,
+  });
+};
+
+//===================================================================
+//===================================================================
+
+export const addProductItem = async (req, res, next) => {
+  const {
+    item_name,
+    description,
+    price,
+    stock,
+    color,
+    size,
+    specifications,
+    discount,
+    discountType,
+    discountPeriod,
+  } = req.body;
+  const { productID } = req.query;
+
+  //Check for category , subcategory and brand
+
+  const item_customID = nanoid();
+
+  //check product existence:
+  const product = await productModel.findById(productID);
+  if (!product) {
+    return next(new Error("Product not found !", { cause: 404 }));
+  }
+
+  //==================================================================
+
+  //check dublicated name  product item :
+
+  const checkProductItemdublicatedName = await product_itemModel.findOne({
+    item_name,
+  });
+  if (checkProductItemdublicatedName) {
+    return next(new Error("Product Item name is duplicated !", { cause: 400 }));
+  }
+
+  //==================================================================
+
+  //uploading main image :
+
+  let mainImage = "";
+  if (req.files?.image?.length) {
+    const { secure_url, public_id } = await cloudinary.uploader.upload(
+      req.files.image[0].path,
+      {
+        folder: `${process.env.cloud_folder}/Products/${product.customID}/${item_customID}`,
+      }
+    );
+    mainImage = { secure_url: `${secure_url}`, public_id: `${public_id}` };
+  }
+
+  let images = [];
+  //check for images
+  if (req.files?.images?.length) {
+    for (const image of req.files.images) {
+      const { secure_url, public_id } = await cloudinary.uploader.upload(
+        image.path,
+        {
+          folder: `${process.env.cloud_folder}/Products/${product.customID}/${item_customID}`,
+        }
+      );
+      images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
+    }
+
+    req.imagePath = `${process.env.cloud_folder}/Products/${product.customID}`;
+  }
+  if (!req.files.image) {
+    return next(
+      new Error("You should at least upload main image !", { cause: 400 })
+    );
+  }
+
+  //==================================================================
+
+  const item_slug = slugify(item_name, "_");
+  let productPaymentPrice = 0;
+
+  //check discount and it's type :
+  if (discount) {
+    if (!discountType) {
+      return next(new Error("Enter dicount type ,please !", { cause: 400 }));
+    }
+    if (discountType == "percentage") {
+      if (discount > 100 || discount < 0) {
+        return next(
+          new Error("Discount must be between 0 and 100 !", { cause: 400 })
+        );
+      }
+      productPaymentPrice = price - (price * discount) / 100;
+    }
+    if (discountType == "amount") {
+      if (discount < 0 || discount > price) {
+        return next(
+          new Error("Discount must be between 0 and price !", { cause: 400 })
+        );
+      }
+      productPaymentPrice = price - discount;
+    }
+    if (discountPeriod) {
+      discountTimer = setTimeout(async function () {
+        console.log("period added and finished");
+        await product_itemModel.findOneAndUpdate(
+          { item_customID },
+          {
+            discount: null,
+            discountType: null,
+            discountPeriod: null,
+            discountFinished: true,
+            paymentPrice: price,
+          }
+        );
+      }, parseInt(discountPeriod));
+    }
+  } else {
+    productPaymentPrice = price;
+  }
+
+  const productItem = await product_itemModel.create({
+    productID: product._id,
+    specifications,
+    item_name,
+    item_customID,
+    item_slug,
+    description,
+    price,
+    discount,
+    discountType,
+    discountPeriod,
+    stock,
+    color,
+    size,
+    paymentPrice: productPaymentPrice,
+    images,
+    mainImage,
+    createdBy: req.user.id,
+  });
+
+  req.createdDoc = {
+    model: product_itemModel,
+    _id: productItem._id,
+  };
+
+  if (!productItem) {
+    //Delete all images:
+    if (mainImage || images.length) {
+      await cloudinary.api.delete_resources_by_prefix(
+        `${process.env.cloud_folder}/Products/${product.customID}/${item_customID}`
+      );
+      await cloudinary.api.delete_folder(
+        `${process.env.cloud_folder}/Products/${product.customID}`
+      );
+    }
+
+    return next(new Error("Failed to add product item !", { cause: 404 }));
+  }
+
+  res.status(200).json({
+    message: "Product item has been added successfully !",
+    productItem,
+  });
 };
 
 //===================================================================

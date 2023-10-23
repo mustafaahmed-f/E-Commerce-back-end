@@ -5,7 +5,7 @@ const product_itemSchema = new Schema(
     productID: { type: Types.ObjectId, ref: "Product", required: true },
     item_name: { type: String, required: true, trim: true, unique: true }, // Name contains any specifications.
     item_slug: { type: String, required: true, trim: true, unique: true },
-    customID: String,
+    item_customID: String,
 
     color: String,
     size: {
@@ -20,7 +20,7 @@ const product_itemSchema = new Schema(
     discount: { type: Number, default: 0 },
     discountType: { type: String, enum: ["percentage", "amount"] },
     discountPeriod: Number,
-    discountFinished: { type: Boolean },
+    discountFinished: { type: Boolean, default: false },
     paymentPrice: { type: Number, default: 0 },
     images: [
       {

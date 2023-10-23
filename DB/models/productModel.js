@@ -1,10 +1,6 @@
 import mongoose, { Schema, Types, model } from "mongoose";
 import product_itemModel from "./product_itemModel.js";
-import {
-  deleteItemsWhenDeleteProduct,
-  deleteItemsWithDeleteManyProducts,
-  getIDsOfDeletedProducts,
-} from "../../src/plugins/deleteProductItems.js";
+import { deleteItemsWhenDeleteProduct } from "../../src/plugins/deleteProductItems.js";
 
 const productSchema = new Schema(
   {
@@ -23,7 +19,7 @@ const productSchema = new Schema(
       unique: true,
     },
 
-    // customID: String,
+    customID: String,
     // isCloth: Boolean, //If the product is a cloth, You will show this product not its items. Items will be options inside it.
     //We will show price of any product item of that product,
 
@@ -48,7 +44,5 @@ productSchema.virtual("productItems", {
 const productModel = model.Product || mongoose.model("Product", productSchema);
 
 productSchema.plugin(deleteItemsWhenDeleteProduct);
-productSchema.plugin(getIDsOfDeletedProducts);
-productSchema.plugin(deleteItemsWithDeleteManyProducts);
 
 export default productModel;

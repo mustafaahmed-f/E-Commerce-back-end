@@ -27,26 +27,3 @@ export const deleteItemsWhenDeleteProduct = (schema) => {
     });
   });
 };
-
-export const getIDsOfDeletedProducts = (schema) => {
-  schema.pre("deleteMany", async function () {
-    this.deletedIDs = [];
-    await this.model
-      .find(this.getQuery())
-      .select("_id")
-      .then(function (products) {
-        this.deletedIDs = products.map((product) => product._id);
-      })
-      .catch(function (err) {
-        console.log(err);
-      });
-  });
-};
-
-export const deleteItemsWithDeleteManyProducts = (schema) => {
-  schema.post("deleteMany", async function () {
-    await product_itemModel.deleteMany({
-      productID: { $in: this.deletedIDs },
-    });
-  });
-};

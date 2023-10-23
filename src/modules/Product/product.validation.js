@@ -10,23 +10,18 @@ export const addProduct = {
         .max(35)
         .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/))
         .required(),
-      colors: joi.alternatives([
-        joi.string().pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)), //Hexadecimal color
-        joi
-          .array()
-          .items(
-            joi
-              .string()
-              .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/))
-          ),
-      ]),
-      sizes: joi.alternatives([
-        joi
-          .array()
-          .items(joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL")),
-        joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
-      ]),
-
+      // validation for first product item :
+      item_name: joi
+        .string()
+        .min(2)
+        .max(35)
+        .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/))
+        .required(),
+      color: joi
+        .string()
+        .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)), //Hexadecimal color,
+      size: joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
+      specifications: joi.object(),
       description: joi.string().min(10).max(500),
       price: joi.number().required(),
       discount: joi.number(),
@@ -46,6 +41,41 @@ export const addProduct = {
       categoryID: generalValidation._id.required(),
       subCategoryID: generalValidation._id.required(),
       brandID: generalValidation._id.required(),
+    })
+    .required(),
+};
+
+export const addProductItem = {
+  body: joi
+    .object({
+      item_name: joi
+        .string()
+        .min(2)
+        .max(35)
+        .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/))
+        .required(),
+      color: joi
+        .string()
+        .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)), //Hexadecimal color,
+      size: joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
+      specifications: joi.object(),
+      description: joi.string().min(10).max(500),
+      price: joi.number().required(),
+      discount: joi.number(),
+      discountType: joi.string().valid("percentage", "amount"),
+      discountPeriod: joi.number().min(0),
+      stock: joi.number().required(),
+    })
+    .required(),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
+  query: joi
+    .object({
+      productID: generalValidation._id.required(),
     })
     .required(),
 };

@@ -7,6 +7,7 @@ import brandsModel from "../../DB/models/brandsModel.js";
 import productModel from "../../DB/models/productModel.js";
 import userModel from "../../DB/models/userModel.js";
 import tokenModel from "../../DB/models/tokenModel.js";
+import product_itemModel from "../../DB/models/product_itemModel.js";
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 
 //===================================================================
@@ -39,7 +40,7 @@ export const fakeSubCategoriesDataGenerator = async () => {
       slug: "",
       createdBy: "65206bde187c71d9a1a1a539",
       customID: nanoid(),
-      categoryID: "6522a166729b40027df17247",
+      categoryID: "6522a166729b40027df1724d",
     };
     subCategory.slug = slugify(subCategory.name, "_");
 
@@ -77,9 +78,9 @@ export const fakeProductsDataGenerator = async () => {
       name: "Pro_" + faker.commerce.productName(),
       createdBy: "65206bde187c71d9a1a1a539",
       slug: "",
-      categoryID: "",
-      subCategoryID: "",
-      brandID: "",
+      categoryID: "6522a166729b40027df17247",
+      subCategoryID: "652f739c75149d5c2255d8d0",
+      brandID: "6522c3dc61ac11c0cc18d6ad",
     };
     product.slug = slugify(product.name, "_");
 
@@ -89,9 +90,10 @@ export const fakeProductsDataGenerator = async () => {
 };
 
 export const fakeProductItemsDataGenerator = async () => {
+  let sizes = ["S", "M", "L", "XL", "XXL", "XXXL"];
   for (let i = 0; i < 3; i++) {
     let product_item = {
-      productID: "",
+      productID: "6536c45f656efd5580790c64",
       item_name: "Pro_item_" + faker.commerce.productName(),
       description: faker.commerce.productDescription(),
       item_slug: "",
@@ -100,12 +102,15 @@ export const fakeProductItemsDataGenerator = async () => {
       discount: faker.number.int({ min: 0, max: 100 }),
       paymentPrice: 0,
       stock: faker.number.int({ min: 10, max: 50 }),
-      customID: nanoid(),
-      colors: faker.color.human(),
-      size: "L",
-      specifications: {}, // Custom specifications
+      item_customID: nanoid(),
+      color: faker.color.human(),
+      size: sizes[Math.floor(Math.random() * sizes.length)],
+      specifications: {
+        ram: "6GB",
+        processor: "Core i7",
+      }, // Custom specifications
     };
-    product_item.item_slug = slugify(product_item.name, "_");
+    product_item.item_slug = slugify(product_item.item_name, "_");
     product_item.paymentPrice =
       product_item.price * (1 - product_item.discount / 100);
 

@@ -33,9 +33,21 @@ router.use(auth([userRole.admin, userRole.superAdmin]));
 router.use(checkAvailability);
 router.post(
   "/addProduct",
-  uploadFile(fileTypeValidation.image).array("images", 3),
+  uploadFile(fileTypeValidation.image).fields([
+    { name: "image", maxCount: 1 },
+    { name: "images", maxCount: 3 },
+  ]),
   validation(validators.addProduct),
   asyncHandler(productConroller.addProduct)
+);
+router.post(
+  "/addProductItem",
+  uploadFile(fileTypeValidation.image).fields([
+    { name: "image", maxCount: 1 },
+    { name: "images", maxCount: 3 },
+  ]),
+  validation(validators.addProductItem),
+  asyncHandler(productConroller.addProductItem)
 );
 router.post(
   "/uploadImages",
