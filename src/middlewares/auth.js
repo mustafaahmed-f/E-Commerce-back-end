@@ -59,7 +59,7 @@ export const auth = (accessRoles) => {
       } catch (error) {
         console.log({ error });
         //Refresh token :
-        if (error.message === "jwt expired") {
+        if (error.message == "jwt expired") {
           const searchForUserID = await tokenModel.findOne({
             loginToken: token,
           });

@@ -52,13 +52,22 @@ export const getSpecificProduct = async (req, res, next) => {
 //===================================================================
 //===================================================================
 
+export const getSpecificProductItem = async (req, res, next) => {
+  const { _id } = req.params;
+  const productItem = await product_itemModel.findById(_id).populate({
+    path: "productID",
+  });
+  if (!productItem) {
+    return next(new Error("No product item was found !", { cause: 404 }));
+  }
+  res.status(200).json({ message: "Done", productItem });
+};
+
+//===================================================================
+//===================================================================
+
 export const deleteProduct = async (req, res, next) => {
   const { _id } = req.query;
-  const product = await productModel.findByIdAndDelete(_id);
-  if (!product) {
-    return next(new Error("No product was found !", { cause: 404 }));
-  }
-
   //Only admin added product and SuperAdmin can delete product:
   const checkCreator = await productModel.findOne({
     _id,
@@ -69,16 +78,53 @@ export const deleteProduct = async (req, res, next) => {
       return next(new Error("You can't delete this product !", { cause: 400 }));
     }
   }
-  //delete related images :
-  if (product.images?.length || product.mainImage?.public_id) {
+
+  const product = await productModel.findByIdAndDelete(_id);
+  if (!product) {
+    return next(new Error("No product was found !", { cause: 404 }));
+  }
+
+  res.status(200).json({ message: "Product has been deleted successfully !" });
+};
+
+//===================================================================
+//===================================================================
+
+export const deleteProductItem = async (req, res, next) => {
+  const { _id } = req.query;
+  //Only admin added product and SuperAdmin can delete product:
+  const checkCreator = await product_itemModel.findOne({
+    _id,
+    createdBy: req.user.id,
+  });
+  if (!checkCreator) {
+    if (req.user.role != userRole.superAdmin) {
+      return next(new Error("You can't delete this product !", { cause: 400 }));
+    }
+  }
+
+  const productItem = await product_itemModel.findByIdAndDelete(_id);
+  if (!productItem) {
+    return next(new Error("No product was found !", { cause: 404 }));
+  }
+  const product = await productModel.findById(productItem.productID);
+  if (!product) {
+    return next(new Error("No product was found !", { cause: 404 }));
+  }
+
+  //delete related images:
+  if (productItem.images?.length || productItem.mainImage?.public_id) {
     await cloudinary.api.delete_resources_by_prefix(
-      `${process.env.cloud_folder}/Products/${product.customID}`
+      `${process.env.cloud_folder}/Products/${product.customID}/${productItem.item_customID}`
     );
     await cloudinary.api.delete_folder(
-      `${process.env.cloud_folder}/Products/${product.customID}`
+      `${process.env.cloud_folder}/Products/${product.customID}/${productItem.item_customID}`
     );
   }
-  res.status(200).json({ message: "Product has been deleted successfully !" });
+
+  res
+    .status(200)
+    .json({ message: "Product item has been deleted successfully !" });
 };
 
 //===================================================================
@@ -454,7 +500,12 @@ export const uploadImages = async (req, res, next) => {
 
   const { _id, public_id } = req.query;
 
-  const product = await productModel.findById(_id);
+  const productItem = await product_itemModel.findById(_id);
+  if (!productItem) {
+    return next(new Error("Product item is not found !", { cause: 404 }));
+  }
+
+  const product = await productModel.findOne({ _id: productItem.productID });
   if (!product) {
     return next(new Error("Product is not found !", { cause: 404 }));
   }
@@ -471,45 +522,39 @@ export const uploadImages = async (req, res, next) => {
   //Remove old images if public_id is sent
   if (public_id) {
     //check if this public_id is of the main image:
-    if (!Array.isArray(public_id)) {
-      if (product.mainImage.public_id == public_id) {
-        return next(new Error("You can't delete main image !", { cause: 400 }));
-      }
-    } else {
-      if (public_id.includes(product.mainImage.public_id)) {
-        return next(new Error("You can't delete main image !", { cause: 400 }));
-      }
-    }
 
-    //Remove image from DB
-    const deleteImages = await productModel.findByIdAndUpdate(_id, {
-      $pull: { images: { public_id: public_id } },
-    });
-    if (!deleteImages) {
-      return next(new Error("Failed to delete old images !", { cause: 404 }));
-    }
     //public id can be multiple values to delete multiple images, so we check if it is an array or not.
     if (!Array.isArray(public_id)) {
       //Prevent deleting main image
-      if (product.mainImage.public_id == public_id) {
+      if (productItem.mainImage.public_id == public_id) {
         return next(new Error("You can't delete main image !", { cause: 400 }));
       }
       await cloudinary.uploader.destroy(public_id).catch((err) => {
         throw new Error(err.message, { cause: 500 });
       });
     } else {
+      if (public_id.includes(productItem.mainImage.public_id)) {
+        return next(new Error("You can't delete main image !", { cause: 400 }));
+      }
       for (const id of public_id) {
         await cloudinary.uploader.destroy(id).catch((err) => {
           throw new Error(err.message, { cause: 500 });
         });
       }
     }
+    //Remove image from DB
+    const deleteImages = await productItem.findByIdAndUpdate(_id, {
+      $pull: { images: { public_id: public_id } },
+    });
+    if (!deleteImages) {
+      return next(new Error("Failed to delete old images !", { cause: 404 }));
+    }
   }
 
   //upload new images.
 
   //check number of images :
-  if (req.files.length + product.images.length > 5) {
+  if (req.files.length + productItem.images.length > 5) {
     return next(
       new Error("You can't upload more than 5 secondary images !", {
         cause: 400,
@@ -523,7 +568,7 @@ export const uploadImages = async (req, res, next) => {
       const { secure_url, public_id } = await cloudinary.uploader.upload(
         image.path,
         {
-          folder: `${process.env.cloud_folder}/Products/${product.customID}`,
+          folder: `${process.env.cloud_folder}/Products/${product.customID}/${productItem.item_customID}`,
         }
       );
       images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
@@ -532,7 +577,7 @@ export const uploadImages = async (req, res, next) => {
     req.additionalImages = images;
   }
 
-  const updatedProduct = await productModel.findByIdAndUpdate(
+  const updatedProductItem = await product_itemModel.findByIdAndUpdate(
     _id,
     {
       $push: {
@@ -543,19 +588,19 @@ export const uploadImages = async (req, res, next) => {
       new: true,
     }
   );
-  if (!updatedProduct) {
+  if (!updatedProductItem) {
     return next(new Error("Failed to update product !", { cause: 404 }));
   }
   return res.status(200).json({
     message: "Product images has been updated successfully !",
-    updatedProduct,
+    updatedProductItem,
   });
 };
 
 //===================================================================
 //===================================================================
 
-export const updateProduct = async (req, res, next) => {
+export const updateProductItem = async (req, res, next) => {
   //Here you can update everything except secondary images. You can use uploadImages API to update secondary images.
   const { _id } = req.query;
   const {
@@ -755,15 +800,20 @@ export const updateProduct = async (req, res, next) => {
 //===================================================================
 //===================================================================
 
+export const updateProduct = async (req, res, next) => {};
+
+//===================================================================
+//===================================================================
+
 export const removeSpecificSecondaryImage = async (req, res, next) => {
   const { _id, public_id } = req.query;
 
-  const product = await productModel.findById(_id);
-  if (!product) {
-    return next(new Error("Product is not found !", { cause: 404 }));
+  const productItem = await product_itemModel.findById(_id);
+  if (!productItem) {
+    return next(new Error("Product item is not found !", { cause: 404 }));
   }
 
-  if (!product.images.length) {
+  if (!productItem.images?.length) {
     return next(new Error(" Couldn't find images", { cause: 404 }));
   }
 
@@ -776,17 +826,17 @@ export const removeSpecificSecondaryImage = async (req, res, next) => {
 
   //check if this public_id is of the main image:
   if (!Array.isArray(public_id)) {
-    if (product.mainImage.public_id == public_id) {
+    if (productItem.mainImage?.public_id == public_id) {
       return next(new Error("You can't delete main image !", { cause: 400 }));
     }
   } else {
-    if (public_id.includes(product.mainImage.public_id)) {
+    if (public_id.includes(productItem.mainImage?.public_id)) {
       return next(new Error("You can't delete main image !", { cause: 400 }));
     }
   }
 
   //Remove image from DB
-  const deleteImages = await productModel.findByIdAndUpdate(_id, {
+  const deleteImages = await product_itemModel.findByIdAndUpdate(_id, {
     $pull: { images: { public_id: public_id } },
   });
   if (!deleteImages) {

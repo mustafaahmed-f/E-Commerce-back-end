@@ -1,6 +1,6 @@
 import mongoose, { Schema, Types, model } from "mongoose";
 import product_itemModel from "./product_itemModel.js";
-import { deleteItemsWhenDeleteProduct } from "../../src/plugins/deleteProductItems.js";
+import cloudinary from "../../src/utils/cloudinary.js";
 
 const productSchema = new Schema(
   {
@@ -41,8 +41,40 @@ productSchema.virtual("productItems", {
   foreignField: "productID",
 });
 
-const productModel = model.Product || mongoose.model("Product", productSchema);
+//Hook for deleteing related product items when product is deleted
+productSchema.pre("findOneAndDelete", async function () {
+  try {
+    const product = await this.model.findOne({
+      _id: this.getQuery()._id,
+    });
+    const productItems = await product_itemModel.find({
+      productID: this.getQuery()._id,
+    });
 
-productSchema.plugin(deleteItemsWhenDeleteProduct);
+    if (productItems.length > 0) {
+      for (let i = 0; i < productItems.length; i++) {
+        if (
+          productItems[i].images?.length ||
+          productItems[i].mainImage?.public_id
+        ) {
+          await cloudinary.api.delete_resources_by_prefix(
+            `${process.env.cloud_folder}/Products/${product.customID}`
+          );
+          await cloudinary.api.delete_folder(
+            `${process.env.cloud_folder}/Products/${product.customID}`
+          );
+        }
+      }
+    }
+
+    await product_itemModel.deleteMany({
+      productID: this.getQuery()._id,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+const productModel = model.Product || mongoose.model("Product", productSchema);
 
 export default productModel;

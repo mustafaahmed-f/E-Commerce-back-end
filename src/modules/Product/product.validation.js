@@ -126,44 +126,31 @@ export const getSpecificProduct = {
   }),
 };
 
-export const updateProduct = {
+export const updateProductItem = {
   body: joi
     .object({
-      name: joi
+      item_name: joi
         .string()
         .min(2)
         .max(35)
         .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/)),
-      colors: joi.alternatives([
-        joi.string().pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)),
-        joi
-          .array()
-          .items(
-            joi
-              .string()
-              .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/))
-          ),
-      ]),
-      sizes: joi.alternatives([
-        joi
-          .array()
-          .items(joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL")),
-        joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
-      ]),
+      color: joi
+        .string()
+        .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)),
+      size: joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
       description: joi.string().min(10).max(500),
       price: joi.number(),
       discount: joi.number(),
       discountType: joi.string().valid("percentage", "amount"),
       discountPeriod: joi.number().min(0),
       stock: joi.number(),
+      specifications: joi.object(),
     })
     .required(),
   query: joi
     .object({
       _id: generalValidation._id.required(),
-      categoryID: generalValidation._id,
-      subCategoryID: generalValidation._id,
-      brandID: generalValidation._id,
+      productID: generalValidation._id,
     })
     .required(),
   headers: joi
@@ -172,6 +159,30 @@ export const updateProduct = {
     })
     .required()
     .unknown(true),
+};
+
+export const updateProduct = {
+  body: joi.object({
+    name: joi
+      .string()
+      .min(2)
+      .max(35)
+      .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/)),
+  }),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
+  query: joi
+    .object({
+      _id: generalValidation._id.required(),
+      categoryID: generalValidation._id,
+      subCategoryID: generalValidation._id,
+      brandID: generalValidation._id,
+    })
+    .required(),
 };
 
 export const removeSpecificSecondaryImage = {
