@@ -93,7 +93,7 @@ export const fakeProductItemsDataGenerator = async () => {
   let sizes = ["S", "M", "L", "XL", "XXL", "XXXL"];
   for (let i = 0; i < 3; i++) {
     let product_item = {
-      productID: "6536c45f656efd5580790c64",
+      productID: "653825e9049f28b552750ae9",
       item_name: "Pro_item_" + faker.commerce.productName(),
       description: faker.commerce.productDescription(),
       item_slug: "",

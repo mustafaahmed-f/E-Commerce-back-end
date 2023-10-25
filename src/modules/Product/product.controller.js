@@ -602,56 +602,46 @@ export const uploadImages = async (req, res, next) => {
 
 export const updateProductItem = async (req, res, next) => {
   //Here you can update everything except secondary images. You can use uploadImages API to update secondary images.
-  const { _id } = req.query;
   const {
-    name,
+    item_name,
     description,
     price,
     stock,
-    colors,
-    sizes,
+    color,
+    size,
     discount,
     discountType,
     discountPeriod,
+    specifications,
   } = req.body;
-  const { categoryID, subCategoryID, brandID } = req.query;
+  const { _id, productID } = req.query;
 
-  if (categoryID) {
-    const category = await categoryModel.findById(categoryID);
-    if (!category) {
-      return next(new Error("Category was not found !", { cause: 404 }));
-    }
+  const productItem = await product_itemModel.findById(_id);
+  if (!productItem) {
+    return next(new Error("Product item is not found !", { cause: 404 }));
   }
-  if (subCategoryID) {
-    const subCategory = await subCategoryModel.findById(subCategoryID);
-    if (!subCategory) {
-      return next(new Error("Sub Category was not found !", { cause: 404 }));
-    }
-  }
-  if (brandID) {
-    const brand = await brandModel.findById(brandID);
-    if (!brand) {
-      return next(new Error("Brand was not found !", { cause: 404 }));
-    }
-  }
-
-  const product = await productModel.findById(_id);
+  const product = await productModel.findOne({ _id: productID });
   if (!product) {
     return next(new Error("Product is not found !", { cause: 404 }));
   }
+
+  let mainImage = null;
   //check if main image is updated.
   if (req.file) {
+    await cloudinary.uploader.destroy(productItem.mainImage.public_id);
+
     const { secure_url, public_id } = await cloudinary.uploader.upload(
       req.file.path,
       {
-        folder: `${process.env.cloud_folder}/Products/${product.customID}`,
+        folder: `${process.env.cloud_folder}/Products/${product.customID}/${productItem.item_customID}`,
       }
     );
-    product.mainImage = { secure_url, public_id };
+
+    mainImage = { secure_url, public_id };
   }
 
-  let productPaymentPrice = product.productPaymentPrice;
-  let currentPrice = product.price;
+  let productPaymentPrice = productItem.productPaymentPrice;
+  let currentPrice = productItem.price;
   if (price) {
     currentPrice = price;
 
@@ -660,7 +650,7 @@ export const updateProductItem = async (req, res, next) => {
       clearTimeout(discountTimer);
       discountTimer = setTimeout(async function () {
         console.log("price updated and finished");
-        await productModel.findByIdAndUpdate(
+        await product_itemModel.findByIdAndUpdate(
           { _id },
           {
             discount: null,
@@ -670,29 +660,29 @@ export const updateProductItem = async (req, res, next) => {
             paymentPrice: price,
           }
         );
-      }, parseInt(product.discountPeriod));
+      }, parseInt(productItem.discountPeriod));
     }
     //update payment price if there is no change in discount:
     if (!discount) {
-      if (product.discountType == "percentage") {
+      if (productItem.discountType == "percentage") {
         productPaymentPrice =
-          currentPrice - (currentPrice * product.discount) / 100;
+          currentPrice - (currentPrice * productItem.discount) / 100;
       }
-      if (product.discountType == "amount") {
-        productPaymentPrice = currentPrice - product.discount;
+      if (productItem.discountType == "amount") {
+        productPaymentPrice = currentPrice - productItem.discount;
       }
     }
   }
 
   //If period is updated:
   if (discountPeriod) {
-    if (product.discount == null && discount == undefined) {
+    if (productItem.discount == null && discount == undefined) {
       return next(new Error("Add new discount", { cause: 400 }));
     }
     clearTimeout(discountTimer);
     discountTimer = setTimeout(async function () {
       console.log("period updated and finished");
-      await productModel.findByIdAndUpdate(
+      await product_itemModel.findByIdAndUpdate(
         { _id },
         {
           discount: null,
@@ -708,7 +698,7 @@ export const updateProductItem = async (req, res, next) => {
   //if discount is updated:
   //you should enter discount type:
   if (discount) {
-    if (discountPeriod == undefined && product.discountPeriod == null) {
+    if (discountPeriod == undefined && productItem.discountPeriod == null) {
       return next(
         new Error(
           "Old discount period finished. Enter new discount period, please !",
@@ -716,7 +706,7 @@ export const updateProductItem = async (req, res, next) => {
         )
       );
     }
-    await productModel.findByIdAndUpdate(_id, {
+    await product_itemModel.findByIdAndUpdate(_id, {
       discountFinished: false,
     });
     if (!discountType) {
@@ -740,67 +730,133 @@ export const updateProductItem = async (req, res, next) => {
     }
   }
 
-  let slug = product.slug;
+  let slug = productItem.item_slug;
   //name change.
-  if (name) {
+  if (item_name) {
     //check dublicated name:
-    const checkDublicatedName = await productModel.findOne({ name });
-    if (checkDublicatedName) {
+    if (
+      productItem.item_name.split(" ").join("").toLowerCase() ===
+      item_name.split(" ").join("").toLowerCase()
+    ) {
       return next(new Error("Name must be unique", { cause: 400 }));
     }
-    slug = slugify(name, "_");
+    slug = slugify(item_name, "_");
   }
 
-  let productColors = product.colors;
-  let productSizes = product.sizes;
-  if (colors) {
-    if (!Array.isArray(colors)) {
-      productColors = [colors];
-    } else {
-      productColors = colors;
-    }
+  let productColor = productItem.color;
+  let productSize = productItem.size;
+  if (color) {
+    productColor = color;
   }
 
-  if (sizes) {
-    if (!Array.isArray(sizes)) {
-      productSizes = [sizes];
-    } else {
-      productSizes = sizes;
-    }
+  if (size) {
+    productSize = size;
   }
 
-  const savedProduct = await productModel.findByIdAndUpdate(
+  const savedProductItem = await product_itemModel.findByIdAndUpdate(
     _id,
     {
-      sizes: productSizes,
-      colors: productColors,
-      name,
-      slug,
+      size: productSize,
+      color: productColor,
+      item_name,
+      item_slug: slug,
       description,
+      specifications,
       stock,
       price: currentPrice,
       paymentPrice: productPaymentPrice,
       discount,
-      discountType,
+      discountType: discountType ?? productItem.discountType,
       discountPeriod,
-      categoryID,
-      subCategoryID,
-      brandID,
+      productID,
+      mainImage,
     },
     { new: true }
   );
 
-  // const savedProduct = await product.save();
-  if (!savedProduct) {
-    return next(new Error(" Couldn't save product ", { cause: 500 }));
+  if (!savedProductItem) {
+    return next(new Error(" Couldn't save product item ", { cause: 500 }));
   }
-  return res.status(200).json({ message: "Success", product: savedProduct });
+  return res
+    .status(200)
+    .json({ message: "Success", product_Item: savedProductItem });
 };
 
 //===================================================================
 //===================================================================
 
-export const updateProduct = async (req, res, next) => {};
+export const updateProduct = async (req, res, next) => {
+  const { name } = req.body;
+  const { categoryID, subCategoryID, brandID, _id } = req.query;
+
+  //check product existence:
+  const product = await productModel.findById(_id);
+  if (!product) {
+    return next(new Error("Product is not found !", { cause: 404 }));
+  }
+
+  let newCategory = null;
+  let newSubCategory = null;
+  let newBrand = null;
+  let newName = null;
+  let newSlug = null;
+
+  //check if category ID is sent:
+  if (categoryID) {
+    //check if category exists:
+    const category = await categoryModel.findById(categoryID);
+    if (!category) {
+      return next(new Error("Category was not found !", { cause: 404 }));
+    }
+    newCategory = category._id;
+  }
+  //check if subCategory ID is sent:
+  if (subCategoryID) {
+    //check if subCategory exists:
+    const subCategory = await subCategoryModel.findById(subCategoryID);
+    if (!subCategory) {
+      return next(new Error("SubCategory was not found !", { cause: 404 }));
+    }
+    newSubCategory = subCategory._id;
+  }
+  //check if brand ID is sent:
+  if (brandID) {
+    //check if brand exists:
+    const brand = await brandsModel.findById(brandID);
+    if (!brand) {
+      return next(new Error("Brand was not found !", { cause: 404 }));
+    }
+    newBrand = brand._id;
+  }
+  //check if name is exist and check name duplication:
+  if (name) {
+    //check dublicated name:
+    if (
+      product.name.split(" ").join("").toLowerCase() ===
+      name.split(" ").join("").toLowerCase()
+    ) {
+      return next(new Error("Name must be unique", { cause: 400 }));
+    }
+    newName = name;
+    newSlug = slugify(newName, "_");
+  }
+
+  const savedProduct = await productModel.findByIdAndUpdate(
+    _id,
+    {
+      name: newName ?? product.name,
+      categoryID: newCategory ?? product.categoryID,
+      subCategoryID: newSubCategory ?? product.subCategoryID,
+      brandID: newBrand ?? product.brandID,
+      slug: newSlug ?? product.slug,
+    },
+    { new: true }
+  );
+  if (!savedProduct) {
+    return next(new Error(" Couldn't save product ", { cause: 500 }));
+  }
+  return res.status(200).json({ message: "Success", product: savedProduct });
+};
 
 //===================================================================
 //===================================================================

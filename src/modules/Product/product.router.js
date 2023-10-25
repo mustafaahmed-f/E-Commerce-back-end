@@ -70,7 +70,6 @@ router.post(
 );
 router.put(
   "/updateProduct",
-  uploadFile(fileTypeValidation.image).single("image"),
   validation(validators.updateProduct),
   asyncHandler(productConroller.updateProduct)
 );
