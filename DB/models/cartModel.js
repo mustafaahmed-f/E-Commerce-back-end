@@ -15,6 +15,7 @@ const cartSchema = new Schema(
           ref: "Product_item",
           required: true,
         },
+        unitPaymentPrice: { type: Number, required: true },
         quantity: { type: Number, required: true },
       },
     ],

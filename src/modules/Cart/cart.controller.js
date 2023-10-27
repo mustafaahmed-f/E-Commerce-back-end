@@ -16,6 +16,9 @@ export const getUserCart = async (req, res, next) => {
       path: "products.productID",
       select: "item_name paymentPrice",
     });
+
+  //TODO : check if price changed ;
+
   if (!cart) {
     return next(new Error("User doesn't have a cart !", { cause: 404 }));
   }
@@ -50,6 +53,7 @@ export const addToCart = async (req, res, next) => {
       products: [
         {
           productID,
+          unitPaymentPrice: productItem.paymentPrice,
           quantity,
         },
       ],
@@ -85,6 +89,7 @@ export const addToCart = async (req, res, next) => {
       productItem.stock = newStock;
       await productItem.save();
       product.quantity = quantity;
+      product.unitPaymentPrice = productItem.paymentPrice;
       updated = true;
       console.log(updated);
       //reduce stock of product;
@@ -99,6 +104,7 @@ export const addToCart = async (req, res, next) => {
     }
     cart.products.push({
       productID,
+      unitPaymentPrice: productItem.paymentPrice,
       quantity,
     });
     productItem.stock = productItem.stock - quantity;
@@ -110,7 +116,8 @@ export const addToCart = async (req, res, next) => {
     if (!currentProduct) {
       return next(
         new Error(
-          `${currentProduct.item_name} that exists in cart isn't found in data base. Please remove it from your cart !`,
+          `Product item with id : (${currentProduct._id}) that exists in cart isn't found in data base.
+           Please remove it from your cart !`,
           { cause: 404 }
         )
       );
@@ -159,7 +166,7 @@ export const updateCart = async (req, res, next) => {
       productItem.stock = productItem.stock + product.quantity - quantity;
       await productItem.save();
       product.quantity = quantity;
-      console.log("quantity and stock updated !");
+      product.unitPaymentPrice = productItem.paymentPrice;
     }
 
     newSubTotal += product.quantity * currentProduct.paymentPrice;
@@ -188,4 +195,57 @@ export const deleteFromCart = async (req, res, next) => {};
 export const removeCart = async (req, res, next) => {
   //Find cart by userID and remove it
   //update products' stocks
+  const cart = await cartModel.findOne({
+    userID: req.user.id,
+  });
+  if (!cart) {
+    return next(new Error("User doesn't have a cart !", { cause: 404 }));
+  }
+
+  for (const product of cart.products) {
+    const currentProduct = await product_itemModel.findById(product.productID);
+    currentProduct.stock = currentProduct.stock + product.quantity;
+    await currentProduct.save();
+  }
+
+  const removeCart = await cartModel.findOneAndDelete({
+    userID: req.user.id,
+  });
+  if (!removeCart) {
+    return next(new Error("Failed to remove cart !", { cause: 400 }));
+  }
+  return res.status(200).json({
+    message: "Cart removed successfully !",
+  });
 };
+
+//==========================================================
+//==========================================================
+
+export const emptyCart = async (req, res, next) => {
+  const cart = await cartModel.findOne({
+    userID: req.user.id,
+  });
+  if (!cart) {
+    return next(new Error("User doesn't have a cart !", { cause: 404 }));
+  }
+
+  for (const product of cart.products) {
+    const currentProduct = await product_itemModel.findById(product.productID);
+    currentProduct.stock = currentProduct.stock + product.quantity;
+    await currentProduct.save();
+  }
+  cart.products = [];
+  await cart.save();
+
+  return res.status(200).json({
+    message: "Cart emptied successfully !",
+    cart,
+  });
+};
+
+//==========================================================
+//==============Refresh product proces in cart =============
+//==========================================================
+
+export const refreshPrices = async (req, res, next) => {};

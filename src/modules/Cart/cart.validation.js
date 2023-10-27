@@ -24,12 +24,12 @@ export const addToCart = {
 };
 
 export const removeCart = {
-  query: joi.object({
-    _id: generalValidation._id,
-  }),
-  headers: joi.object({
-    authorization: generalValidation.authorization,
-  }),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
 };
 
 export const deleteFromCart = {

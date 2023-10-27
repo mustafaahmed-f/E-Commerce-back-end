@@ -37,5 +37,10 @@ router.delete(
   validation(validators.removeCart),
   asyncHandler(cartController.removeCart)
 );
+router.put(
+  "/emptyCart",
+  validation(validators.removeCart),
+  asyncHandler(cartController.emptyCart)
+);
 
 export default router;
