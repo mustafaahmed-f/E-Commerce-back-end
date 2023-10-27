@@ -139,25 +139,11 @@ export const addToCart = async (req, res, next) => {
 
 export const updateCart = async (req, res, next) => {
   const { productID, quantity } = req.body;
-  const cart = await cartModel.findOne({
-    userID: req.user.id,
-  });
-  if (!cart) {
-    return next(new Error("User doesn't have a cart !", { cause: 404 }));
-  }
 
-  // Check if product item is available:
-  const productItem = await product_itemModel.findById(productID);
-  if (!productItem) {
-    return next(new Error("Product item doesn't exist ", { cause: 404 }));
-  }
-
-  //check if product item exists in cart:
-  if (!cart.products.find((item) => item.productID == productID)) {
-    return next(
-      new Error("Product item doesn't exist in cart !", { cause: 404 })
-    );
-  }
+  const { cart, productItem } = await checkCartAndProduct(
+    req.user.id,
+    productID
+  );
 
   let newSubTotal = 0;
   for (const product of cart.products) {
@@ -187,7 +173,28 @@ export const updateCart = async (req, res, next) => {
 //==========================================================
 //==========================================================
 
-export const deleteFromCart = async (req, res, next) => {};
+export const deleteFromCart = async (req, res, next) => {
+  const { productID } = req.body;
+
+  const { cart, productItem } = await checkCartAndProduct(
+    req.user.id,
+    productID
+  );
+
+  cart.products = cart.products.filter(async (product) => {
+    if (product.productID == productID) {
+      productItem.stock = productItem.stock + product.quantity;
+      await productItem.save();
+    }
+    return product.productID != productID;
+  });
+
+  await cart.save();
+  return res.status(200).json({
+    message: "Product has been removed successfully successfully !",
+    cart,
+  });
+};
 
 //==========================================================
 //==========================================================
@@ -248,4 +255,35 @@ export const emptyCart = async (req, res, next) => {
 //==============Refresh product proces in cart =============
 //==========================================================
 
-export const refreshPrices = async (req, res, next) => {};
+export const refreshPrices = async () => {};
+
+//==========================================================
+//===============Check cart & product=======================
+//==========================================================
+
+export const checkCartAndProduct = async (userID, productID) => {
+  const cart = await cartModel.findOne({
+    userID,
+  });
+  if (!cart) {
+    return next(new Error("User doesn't have a cart !", { cause: 404 }));
+  }
+
+  // Check if product item is available:
+  const productItem = await product_itemModel.findById(productID);
+  if (!productItem) {
+    return next(new Error("Product item doesn't exist ", { cause: 404 }));
+  }
+
+  //check if product item exists in cart:
+  if (!cart.products.find((item) => item.productID == productID)) {
+    return next(
+      new Error("Product item doesn't exist in cart !", { cause: 404 })
+    );
+  }
+
+  return {
+    cart,
+    productItem,
+  };
+};
