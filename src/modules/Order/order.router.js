@@ -9,4 +9,13 @@ import { checkAvailability } from "../../middlewares/checkAvailability.js";
 
 const router = Router();
 
+router.use(auth([userRole.user]));
+router.use(checkAvailability);
+
+router.post(
+  "/addOrder",
+  validation(validators.addOrder),
+  asyncHandler(orderController.addOrder)
+);
+
 export default router;

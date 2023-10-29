@@ -16,6 +16,7 @@ const orderSchema = new Schema(
         },
         quantity: { type: Number, required: true },
         unitPaymentPrice: { type: Number, required: true },
+        finalPaymentPrice: { type: Number, required: true },
         name: { type: String, required: true },
       },
     ],
@@ -26,7 +27,7 @@ const orderSchema = new Schema(
     subTotal: { type: Number, required: true, default: 0 },
     finalPaidAmount: { type: Number, required: true, default: 0 },
     phoneNumbers: [{ type: String, required: true }],
-    address: { type: String, required: true },
+    address: { type: Schema.Types.Mixed, required: true },
     paymentMethod: {
       type: String,
       required: true,

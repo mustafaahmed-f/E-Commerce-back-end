@@ -6,6 +6,7 @@ import couponModel from "../../../DB/models/couponModel.js";
 import productModel from "../../../DB/models/productModel.js";
 import cartModel from "../../../DB/models/cartModel.js";
 import product_itemModel from "../../../DB/models/product_itemModel.js";
+import { refreshProductPrices } from "../../utils/refreshProductPrices.js";
 
 export const getUserCart = async (req, res, next) => {
   const cart = await cartModel
@@ -17,11 +18,26 @@ export const getUserCart = async (req, res, next) => {
       select: "item_name paymentPrice",
     });
 
-  //TODO : check if price changed ;
-
   if (!cart) {
     return next(new Error("User doesn't have a cart !", { cause: 404 }));
   }
+
+  //TODO : check if price changed ;
+  const { subTotal, updated } = await refreshProductPrices(cart);
+  // let subTotal = 0;
+  // let updated = false;
+  // for (const product of cart.products) {
+  //   if (product.unitPaymentPrice != product.productID.paymentPrice) {
+  //     product.unitPaymentPrice = product.productID.paymentPrice;
+  //     updated = true;
+  //   }
+  //   subTotal += product.quantity * product.unitPaymentPrice;
+  // }
+  if (updated) {
+    cart.subTotal = subTotal;
+    await cart.save();
+  }
+
   return res.status(200).json({ message: "Done", cart });
 };
 
@@ -181,18 +197,43 @@ export const deleteFromCart = async (req, res, next) => {
     productID
   );
 
-  cart.products = cart.products.filter(async (product) => {
+  let productQuantity = 0;
+
+  for (const product of cart.products) {
     if (product.productID == productID) {
       productItem.stock = productItem.stock + product.quantity;
+      productQuantity = product.quantity;
       await productItem.save();
     }
-    return product.productID != productID;
-  });
+  }
 
-  await cart.save();
+  const newSubTotal =
+    cart.subTotal - productItem.paymentPrice * productQuantity;
+
+  const updatedCart = await cartModel.findOneAndUpdate(
+    {
+      userID: req.user.id,
+    },
+    {
+      $pull: {
+        products: {
+          productID: productID,
+        },
+      },
+      subTotal: newSubTotal,
+    },
+    {
+      new: true,
+    }
+  );
+  if (!updateCart) {
+    return next(
+      new Error("Failed to remove product from cart !", { cause: 400 })
+    );
+  }
   return res.status(200).json({
     message: "Product has been removed successfully successfully !",
-    cart,
+    updatedCart,
   });
 };
 

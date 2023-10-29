@@ -297,120 +297,120 @@ export const deleteAssignUsers = async (req, res, next) => {
 //============================================================================
 //============================================================================
 
-export const assignProducts = async (req, res, next) => {
-  const { _id } = req.query;
-  const { products } = req.body;
-  const coupon = await couponModel.find({ _id });
-  if (!coupon.length) {
-    return next(new Error("Coupon is not found", { cause: 404 }));
-  }
+// export const assignProducts = async (req, res, next) => {
+//   const { _id } = req.query;
+//   const { products } = req.body;
+//   const coupon = await couponModel.find({ _id });
+//   if (!coupon.length) {
+//     return next(new Error("Coupon is not found", { cause: 404 }));
+//   }
 
-  //Check products' IDs and avoid dublicated products:
-  let productsFound = [];
-  for (const product of products) {
-    const checkProductExistence = await productModel.findById(product);
-    if (checkProductExistence) {
-      productsFound.push(product);
-    }
-  }
-  if (productsFound.length < products.length) {
-    return next(
-      new Error(
-        `${
-          products.length - productsFound.length
-        } product/s is/are not found !`,
-        { cause: 404 }
-      )
-    );
-  }
+//   //Check products' IDs and avoid dublicated products:
+//   let productsFound = [];
+//   for (const product of products) {
+//     const checkProductExistence = await productModel.findById(product);
+//     if (checkProductExistence) {
+//       productsFound.push(product);
+//     }
+//   }
+//   if (productsFound.length < products.length) {
+//     return next(
+//       new Error(
+//         `${
+//           products.length - productsFound.length
+//         } product/s is/are not found !`,
+//         { cause: 404 }
+//       )
+//     );
+//   }
 
-  const updatedCoupon = await couponModel
-    .findOneAndUpdate(
-      { _id },
-      {
-        assignedProducts: products,
-      },
-      { new: true }
-    )
-    .populate({
-      path: "assignedProducts",
-      select: "name description price discount paymentPrice stock discountType",
-    });
-  if (!updatedCoupon) {
-    return next(new Error("Failed to update coupon !", { cause: 404 }));
-  }
-  return res.status(200).json({
-    message: "Coupon has been updated successfully.",
-    coupon: updatedCoupon,
-  });
-};
+//   const updatedCoupon = await couponModel
+//     .findOneAndUpdate(
+//       { _id },
+//       {
+//         assignedProducts: products,
+//       },
+//       { new: true }
+//     )
+//     .populate({
+//       path: "assignedProducts",
+//       select: "name description price discount paymentPrice stock discountType",
+//     });
+//   if (!updatedCoupon) {
+//     return next(new Error("Failed to update coupon !", { cause: 404 }));
+//   }
+//   return res.status(200).json({
+//     message: "Coupon has been updated successfully.",
+//     coupon: updatedCoupon,
+//   });
+// };
 
 //============================================================================
 //============================================================================
 
-export const deleteAssignProducts = async (req, res, next) => {
-  const { _id } = req.query;
-  const { products } = req.body;
-  const coupon = await couponModel.find({ _id });
+// export const deleteAssignProducts = async (req, res, next) => {
+//   const { _id } = req.query;
+//   const { products } = req.body;
+//   const coupon = await couponModel.find({ _id });
 
-  if (!coupon.length) {
-    return next(new Error("Coupon is not found", { cause: 404 }));
-  }
+//   if (!coupon.length) {
+//     return next(new Error("Coupon is not found", { cause: 404 }));
+//   }
 
-  const oneCoupon = coupon[0];
-  //   if (!oneCoupon.assignedProducts.length) {
-  //     return next(new Error("Coupon has no assigned products", { cause: 404 }));
-  //   }
+//   const oneCoupon = coupon[0];
+//   //   if (!oneCoupon.assignedProducts.length) {
+//   //     return next(new Error("Coupon has no assigned products", { cause: 404 }));
+//   //   }
 
-  //Map to check if the user exists in assigned users of coupon
-  const productMap = new Map();
-  for (const product of oneCoupon.assignedProducts) {
-    productMap.set(product.toString(), "assignedProduct");
-  }
+//   //Map to check if the user exists in assigned users of coupon
+//   const productMap = new Map();
+//   for (const product of oneCoupon.assignedProducts) {
+//     productMap.set(product.toString(), "assignedProduct");
+//   }
 
-  //check product existence:
-  let productsFound = [];
-  for (const product of products) {
-    const checkProductExistence = await productModel.findById(product);
-    if (!productMap.has(product)) {
-      return next(
-        new Error(
-          `${checkProductExistence.name} doesn't exist in assigned products of coupon`,
-          { cause: 404 }
-        )
-      );
-    }
-    if (checkProductExistence) {
-      productsFound.push(product);
-    }
-  }
-  if (productsFound.length < products.length) {
-    return next(
-      new Error(
-        `${products.length - productsFound.length} user/s is/are not found !`,
-        { cause: 404 }
-      )
-    );
-  }
+//   //check product existence:
+//   let productsFound = [];
+//   for (const product of products) {
+//     const checkProductExistence = await productModel.findById(product);
+//     if (!productMap.has(product)) {
+//       return next(
+//         new Error(
+//           `${checkProductExistence.name} doesn't exist in assigned products of coupon`,
+//           { cause: 404 }
+//         )
+//       );
+//     }
+//     if (checkProductExistence) {
+//       productsFound.push(product);
+//     }
+//   }
+//   if (productsFound.length < products.length) {
+//     return next(
+//       new Error(
+//         `${products.length - productsFound.length} user/s is/are not found !`,
+//         { cause: 404 }
+//       )
+//     );
+//   }
 
-  const updatedCoupon = await couponModel.findOneAndUpdate(
-    { _id },
-    {
-      $pull: {
-        assignedProducts: {
-          $in: [...products], //look how to do it .
-        },
-      },
-    },
-    { new: true }
-  );
-  if (!updatedCoupon) {
-    return next(
-      new Error("Failed to remove assigned users from coupon !", { cause: 404 })
-    );
-  }
-  return res.status(200).json({
-    message: "Users have been removed successfully!",
-    coupon: updatedCoupon,
-  });
-};
+//   const updatedCoupon = await couponModel.findOneAndUpdate(
+//     { _id },
+//     {
+//       $pull: {
+//         assignedProducts: {
+//           $in: [...products], //look how to do it .
+//         },
+//       },
+//     },
+//     { new: true }
+//   );
+//   if (!updatedCoupon) {
+//     return next(
+//       new Error("Failed to remove assigned users from coupon !", { cause: 404 })
+//     );
+//   }
+//   return res.status(200).json({
+//     message: "Users have been removed successfully!",
+//     coupon: updatedCoupon,
+//   });
+// };

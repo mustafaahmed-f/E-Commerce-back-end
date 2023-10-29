@@ -107,24 +107,24 @@ export const deleteAssignUsers = {
     .required(),
 };
 
-export const assignProducts = {
-  query: joi
-    .object({
-      _id: generalValidation._id,
-    })
-    .required(),
-  headers: joi
-    .object({
-      authorization: generalValidation.authorization,
-    })
-    .required()
-    .unknown(true),
-  body: joi
-    .object({
-      products: joi.array().items(generalValidation._id.required()).required(),
-    })
-    .required(),
-};
+// export const assignProducts = {
+//   query: joi
+//     .object({
+//       _id: generalValidation._id,
+//     })
+//     .required(),
+//   headers: joi
+//     .object({
+//       authorization: generalValidation.authorization,
+//     })
+//     .required()
+//     .unknown(true),
+//   body: joi
+//     .object({
+//       products: joi.array().items(generalValidation._id.required()).required(),
+//     })
+//     .required(),
+// };
 
 export const getCoupons = {
   query: joi

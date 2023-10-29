@@ -37,7 +37,6 @@ const couponSchema = new Schema(
         },
       },
     ],
-    assignedProducts: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     fromDate: {
       type: Date,
       required: true,

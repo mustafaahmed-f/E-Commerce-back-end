@@ -45,15 +45,15 @@ router.put(
   validation(validators.assignProducts),
   asyncHandler(couponController.assignProducts)
 );
-router.delete(
-  "/deleteAssignUsers",
-  validation(validators.deleteAssignUsers),
-  asyncHandler(couponController.deleteAssignUsers)
-);
-router.delete(
-  "/deleteAssignProducts",
-  validation(validators.assignProducts),
-  asyncHandler(couponController.deleteAssignProducts)
-);
+// router.delete(
+//   "/deleteAssignUsers",
+//   validation(validators.deleteAssignUsers),
+//   asyncHandler(couponController.deleteAssignUsers)
+// );
+// router.delete(
+//   "/deleteAssignProducts",
+//   validation(validators.assignProducts),
+//   asyncHandler(couponController.deleteAssignProducts)
+// );
 
 export default router;
