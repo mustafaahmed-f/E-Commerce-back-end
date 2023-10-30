@@ -18,4 +18,10 @@ router.post(
   asyncHandler(orderController.addOrder)
 );
 
+router.post(
+  "/fromCartToOrder",
+  validation(validators.fromCartToOrder),
+  asyncHandler(orderController.fromCartToOrder)
+);
+
 export default router;

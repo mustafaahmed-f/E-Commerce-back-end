@@ -20,3 +20,25 @@ export const addOrder = {
     .required()
     .unknown(true),
 };
+
+//================================================================
+//================================================================
+
+export const fromCartToOrder = {
+  body: joi.object({
+    couponCode: joi.string(),
+    address: generalValidation.addAddress.required(),
+    phoneNumbers: joi
+      .array()
+      .items(joi.string().pattern(new RegExp("^(01)[1250][0-9]{8}$")))
+      .required(),
+    cartID: generalValidation._id.required(),
+    paymentMethod: joi.string().valid("visa card", "cash").required(),
+  }),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
+};

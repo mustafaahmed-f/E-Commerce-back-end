@@ -24,15 +24,7 @@ export const getUserCart = async (req, res, next) => {
 
   //TODO : check if price changed ;
   const { subTotal, updated } = await refreshProductPrices(cart);
-  // let subTotal = 0;
-  // let updated = false;
-  // for (const product of cart.products) {
-  //   if (product.unitPaymentPrice != product.productID.paymentPrice) {
-  //     product.unitPaymentPrice = product.productID.paymentPrice;
-  //     updated = true;
-  //   }
-  //   subTotal += product.quantity * product.unitPaymentPrice;
-  // }
+
   if (updated) {
     cart.subTotal = subTotal;
     await cart.save();
@@ -291,12 +283,6 @@ export const emptyCart = async (req, res, next) => {
     cart,
   });
 };
-
-//==========================================================
-//==============Refresh product proces in cart =============
-//==========================================================
-
-export const refreshPrices = async () => {};
 
 //==========================================================
 //===============Check cart & product=======================
