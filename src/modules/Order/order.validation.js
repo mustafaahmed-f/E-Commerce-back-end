@@ -4,7 +4,7 @@ import { generalValidation } from "../../middlewares/validation.js";
 export const addOrder = {
   body: joi.object({
     couponCode: joi.string(),
-    address: generalValidation.addAddress.required(),
+    address: generalValidation.addAddress,
     phoneNumbers: joi
       .array()
       .items(joi.string().pattern(new RegExp("^(01)[1250][0-9]{8}$")))
@@ -27,7 +27,7 @@ export const addOrder = {
 export const fromCartToOrder = {
   body: joi.object({
     couponCode: joi.string(),
-    address: generalValidation.addAddress.required(),
+    address: generalValidation.addAddress,
     phoneNumbers: joi
       .array()
       .items(joi.string().pattern(new RegExp("^(01)[1250][0-9]{8}$")))

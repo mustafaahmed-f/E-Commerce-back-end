@@ -1,3 +1,4 @@
+import user_addressModel from "../../../DB/models/address/user_addressModel.js";
 import cartModel from "../../../DB/models/cartModel.js";
 import orderModel from "../../../DB/models/orderMode.js";
 import productModel from "../../../DB/models/productModel.js";
@@ -61,6 +62,33 @@ export const addOrder = async (req, res, next) => {
     finalPaidAmount = finalPaidAmount - (req.coupon?.couponAmount || 0);
   }
 
+  //if no address was send, use default address of user:
+  let userAddress = null;
+  if (!address) {
+    const userAddresses = await user_addressModel
+      .findOne({ user_id: req.user.id })
+      .populate("addresses");
+    for (const address of userAddresses.addresses) {
+      if (address.is_default) {
+        userAddress = {
+          address_line1: address.address_line1,
+          city: address.city,
+          region: address.region,
+          country: address.country,
+        };
+      }
+    }
+  }
+
+  if (!userAddress && !address) {
+    return next(
+      new Error(
+        "No address default address was found. Please send an address!",
+        { cause: 404 }
+      )
+    );
+  }
+
   const order = await orderModel.create({
     userID: req.user.id,
     products,
@@ -68,7 +96,7 @@ export const addOrder = async (req, res, next) => {
     subTotal: subtotal,
     finalPaidAmount: finalPaidAmount,
     phoneNumbers,
-    address,
+    address: userAddress ?? address,
     paymentMethod,
     orderStatus: paymentMethod === "cash" ? "completed" : "pending",
   });
@@ -162,6 +190,33 @@ export const fromCartToOrder = async (req, res, next) => {
     finalPaidAmount = finalPaidAmount - (req.coupon?.couponAmount || 0);
   }
 
+  //if no address was send, use default address of user:
+  let userAddress = null;
+  if (!address) {
+    const userAddresses = await user_addressModel
+      .findOne({ user_id: req.user.id })
+      .populate("addresses");
+    for (const address of userAddresses.addresses) {
+      if (address.is_default) {
+        userAddress = {
+          address_line1: address.address_line1,
+          city: address.city,
+          region: address.region,
+          country: address.country,
+        };
+      }
+    }
+  }
+
+  if (!userAddress && !address) {
+    return next(
+      new Error(
+        "No address default address was found. Please send an address!",
+        { cause: 404 }
+      )
+    );
+  }
+
   const order = await orderModel.create({
     userID: req.user.id,
     products,
@@ -169,8 +224,9 @@ export const fromCartToOrder = async (req, res, next) => {
     subTotal: subTotal,
     finalPaidAmount: finalPaidAmount,
     phoneNumbers,
-    address,
+    address: userAddress ?? address,
     paymentMethod,
+    isFromCart: true,
     orderStatus: paymentMethod === "cash" ? "completed" : "pending",
   });
   if (!order) {

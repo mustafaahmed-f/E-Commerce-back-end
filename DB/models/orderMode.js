@@ -47,6 +47,7 @@ const orderSchema = new Schema(
         "shipped",
       ],
     },
+    isFromCart: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
