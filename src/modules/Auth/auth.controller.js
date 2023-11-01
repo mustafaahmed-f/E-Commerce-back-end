@@ -127,10 +127,6 @@ export const signUp = async (req, res, next) => {
     return next(new Error("Failed to send email", { cause: 500 }));
   }
 
-  // confirmCode: hashedCode,
-  // newConfirmToken: newConfirmEmailToken,
-  // confirmToken: confirmEmailToken,
-
   const addTokens = await tokenModel.create({
     user_id: addUser._id,
     confirmCode: hashedCode,

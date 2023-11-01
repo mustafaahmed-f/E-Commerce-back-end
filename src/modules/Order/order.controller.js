@@ -1,9 +1,12 @@
+import { nanoid } from "nanoid";
 import user_addressModel from "../../../DB/models/address/user_addressModel.js";
 import cartModel from "../../../DB/models/cartModel.js";
 import orderModel from "../../../DB/models/orderMode.js";
-import productModel from "../../../DB/models/productModel.js";
 import product_itemModel from "../../../DB/models/product_itemModel.js";
 import { couponValidation } from "../../utils/couponValidation.js";
+import createInvoice from "../../utils/pdfkit.js";
+import sendEmail from "../../services/sendEmail.js";
+import { sendInvoice } from "../../utils/sendInvoice.js";
 
 export const addOrder = async (req, res, next) => {
   const {
@@ -115,6 +118,12 @@ export const addOrder = async (req, res, next) => {
 
     return next(new Error("Something went wrong !", { cause: 404 }));
   }
+
+  //================================= Invoice =========================================
+
+  await sendInvoice(order, req.user);
+
+  //===================================================================================
 
   return res
     .status(200)
@@ -243,6 +252,12 @@ export const fromCartToOrder = async (req, res, next) => {
 
   checkCart.products = [];
   await checkCart.save();
+
+  //======================== Invoice ============================
+
+  await sendInvoice(order, req.user);
+
+  //=============================================================
 
   return res
     .status(200)

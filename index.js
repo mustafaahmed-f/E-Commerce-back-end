@@ -4,6 +4,7 @@ import { config } from "dotenv";
 import path from "path";
 import bootstrap from "./src/initiateApp.js";
 import { deleteNonConfirmedUsers } from "./src/utils/deleteNonConfirmedAcc.js";
+import * as v from "countries-api";
 
 import {
   fakeBrandsDataGenerator,
