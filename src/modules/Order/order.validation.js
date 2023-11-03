@@ -11,7 +11,7 @@ export const addOrder = {
       .required(),
     productID: generalValidation._id.required(),
     productQuantity: joi.number().min(0).required(),
-    paymentMethod: joi.string().valid("visa card", "cash").required(),
+    paymentMethod: joi.string().valid("card", "cash").required(),
   }),
   headers: joi
     .object({
@@ -42,3 +42,33 @@ export const fromCartToOrder = {
     .required()
     .unknown(true),
 };
+
+//================================================================
+//================================================================
+
+export const completeOrder = {
+  query: joi.object({
+    orderID: generalValidation._id.required(),
+  }),
+  headers: joi
+    .object({
+      authorization: generalValidation.authorization,
+    })
+    .required()
+    .unknown(true),
+};
+
+//================================================================
+//================================================================
+
+// export const requestNewPaymentSession = {
+//   query: joi.object({
+//     orderID: generalValidation._id.required(),
+//   }),
+//   headers: joi
+//     .object({
+//       authorization: generalValidation.authorization,
+//     })
+//     .required()
+//     .unknown(true),
+// };

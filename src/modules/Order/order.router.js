@@ -23,5 +23,16 @@ router.post(
   validation(validators.fromCartToOrder),
   asyncHandler(orderController.fromCartToOrder)
 );
+router.put(
+  "/completeOrder",
+  validation(validators.completeOrder),
+  asyncHandler(orderController.completeOrder)
+);
+router.get(
+  "/requestNewPaymentSession",
+  validation(validators.completeOrder),
+  asyncHandler(orderController.requestNewPaymentSession)
+);
+router.get("/getUserOrders", asyncHandler(orderController.getUserOrders));
 
 export default router;

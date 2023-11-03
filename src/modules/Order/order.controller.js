@@ -7,6 +7,9 @@ import { couponValidation } from "../../utils/couponValidation.js";
 import createInvoice from "../../utils/pdfkit.js";
 import sendEmail from "../../services/sendEmail.js";
 import { sendInvoice } from "../../utils/sendInvoice.js";
+import { paymentFunction } from "../../utils/payment.js";
+import Stripe from "stripe";
+import { ApiFeatures } from "../../utils/apiFeatures.js";
 
 export const addOrder = async (req, res, next) => {
   const {
@@ -33,6 +36,19 @@ export const addOrder = async (req, res, next) => {
     }
 
     req.coupon = isCouponValid.coupon;
+
+    if (!req.coupon?.isPercentage) {
+      if (
+        req.coupon.couponAmount >
+        productCheck.paymentPrice * productQuantity
+      ) {
+        return next(
+          new Error("Coupon amount is greater than payment price ", {
+            cause: 400,
+          })
+        );
+      }
+    }
 
     for (const user of req.coupon.assignedUsers) {
       if (user.user_id.toString() == req.user.id.toString()) {
@@ -91,7 +107,7 @@ export const addOrder = async (req, res, next) => {
       )
     );
   }
-
+  console.log(paymentMethod);
   const order = await orderModel.create({
     userID: req.user.id,
     products,
@@ -101,7 +117,7 @@ export const addOrder = async (req, res, next) => {
     phoneNumbers,
     address: userAddress ?? address,
     paymentMethod,
-    orderStatus: paymentMethod === "cash" ? "completed" : "pending",
+    orderStatus: paymentMethod == "cash" ? "completed" : "pending",
   });
   if (!order) {
     //return old stock value;
@@ -119,15 +135,58 @@ export const addOrder = async (req, res, next) => {
     return next(new Error("Something went wrong !", { cause: 404 }));
   }
 
+  //================================ Payment ==========================================
+
+  let paymentData;
+
+  if (order.paymentMethod === "card") {
+    let stripeCoupon;
+    //check if there is a coupon applied :
+    if (couponCode) {
+      const stripeConnection = new Stripe(process.env.STRIPE_KEY);
+      if (req.coupon?.isPercentage) {
+        stripeCoupon = await stripeConnection.coupons.create({
+          percent_off: req.coupon?.couponAmount,
+        });
+      } else if (!req.coupon?.isPercentage) {
+        stripeCoupon = await stripeConnection.coupons.create({
+          amount_off: req.coupon?.couponAmount * 100,
+          currency: "EGP",
+        });
+      }
+    }
+
+    paymentData = await paymentFunction({
+      payment_method_types: ["card"],
+      mode: "payment",
+      customer_email: req.user.email,
+      success_url: `http://localhost:3000/payment/successPaymen`,
+      cancel_url: `http://localhost:3000/payment/cancelPayment`,
+      line_items: [
+        {
+          price_data: {
+            currency: "EGP",
+            product_data: {
+              name: productCheck.item_name,
+            },
+            unit_amount: productCheck.paymentPrice * 100,
+          },
+          quantity: productQuantity,
+        },
+      ],
+      discounts: stripeCoupon ? [{ coupon: stripeCoupon.id }] : [],
+    });
+  }
+
   //================================= Invoice =========================================
 
-  await sendInvoice(order, req.user);
+  // await sendInvoice(order, req.user);
 
   //===================================================================================
 
   return res
     .status(200)
-    .json({ message: "Order was successfully created", order });
+    .json({ message: "Order was successfully created", order, paymentData });
 };
 
 //================================================================
@@ -266,3 +325,43 @@ export const fromCartToOrder = async (req, res, next) => {
 
 //================================================================
 //================================================================
+
+export const requestNewPaymentSession = async (req, res, next) => {
+  //check order if it is pending or not:
+  //using payment data parameter:
+  const { orderID } = req.query;
+};
+
+//================================================================
+//================================================================
+
+export const completeOrder = async (req, res, next) => {
+  const { orderID } = req.query;
+  const order = await orderModel.findById(orderID);
+  if (!order) {
+    return next(new Error("Order not found", { cause: 404 }));
+  }
+  order.orderStatus = "completed";
+  await order.save();
+  return res.status(200).json({ message: "Order completed successfully" });
+};
+
+//================================================================
+//================================================================
+
+export const getUserOrders = async (req, res, next) => {
+  //Using api features , user can get pending orders or all orders:
+  const apiFeatureInstance = new ApiFeatures(
+    orderModel.find({ userID: req.user.id }),
+    req.query
+  )
+    .sort()
+    .paignation()
+    .select()
+    .filter();
+  const orders = await apiFeatureInstance.mongooseQuery;
+  if (!orders.length) {
+    return next(new Error("Orders not found", { cause: 404 }));
+  }
+  return res.status(200).json({ message: "Done", orders });
+};
