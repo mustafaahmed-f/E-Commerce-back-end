@@ -10,6 +10,8 @@ import { sendInvoice } from "../../utils/sendInvoice.js";
 import { paymentFunction } from "../../utils/payment.js";
 import Stripe from "stripe";
 import { ApiFeatures } from "../../utils/apiFeatures.js";
+import couponModel from "../../../DB/models/couponModel.js";
+import { signToken, verifyToken } from "../../utils/tokenMethod.js";
 
 export const addOrder = async (req, res, next) => {
   const {
@@ -117,6 +119,7 @@ export const addOrder = async (req, res, next) => {
     phoneNumbers,
     address: userAddress ?? address,
     paymentMethod,
+    couponID: req.coupon?._id ?? null,
     orderStatus: paymentMethod == "cash" ? "completed" : "pending",
   });
   if (!order) {
@@ -136,6 +139,13 @@ export const addOrder = async (req, res, next) => {
   }
 
   //================================ Payment ==========================================
+
+  //webhook signing secret : whsec_8b51a138b7dee0e0e4fd38c55b96d4ad5c6115ebb17f8d46d858d3b304a44f47
+
+  let token = signToken({
+    payload: { orderID: order._id },
+    signature: "order-completeee-signature",
+  });
 
   let paymentData;
 
@@ -160,8 +170,8 @@ export const addOrder = async (req, res, next) => {
       payment_method_types: ["card"],
       mode: "payment",
       customer_email: req.user.email,
-      success_url: `http://localhost:3000/payment/successPaymen`,
-      cancel_url: `http://localhost:3000/payment/cancelPayment`,
+      success_url: `http://localhost:5000/eCommerce/order/completeOrder/${token}`,
+      cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment`,
       line_items: [
         {
           price_data: {
@@ -295,6 +305,7 @@ export const fromCartToOrder = async (req, res, next) => {
     address: userAddress ?? address,
     paymentMethod,
     isFromCart: true,
+    couponID: req.coupon?.id ?? null,
     orderStatus: paymentMethod === "cash" ? "completed" : "pending",
   });
   if (!order) {
@@ -312,6 +323,54 @@ export const fromCartToOrder = async (req, res, next) => {
   checkCart.products = [];
   await checkCart.save();
 
+  //================================ Payment ==========================================
+
+  let token = signToken({
+    payload: { orderID: order._id },
+    signature: "order-completeee-signature",
+  });
+
+  let paymentData;
+
+  if (order.paymentMethod === "card") {
+    let stripeCoupon;
+    //check if there is a coupon applied :
+    if (couponCode) {
+      const stripeConnection = new Stripe(process.env.STRIPE_KEY);
+      if (req.coupon?.isPercentage) {
+        stripeCoupon = await stripeConnection.coupons.create({
+          percent_off: req.coupon?.couponAmount,
+        });
+      } else if (!req.coupon?.isPercentage) {
+        stripeCoupon = await stripeConnection.coupons.create({
+          amount_off: req.coupon?.couponAmount * 100,
+          currency: "EGP",
+        });
+      }
+    }
+
+    paymentData = await paymentFunction({
+      payment_method_types: ["card"],
+      mode: "payment",
+      customer_email: req.user.email,
+      success_url: `http://localhost:5000/eCommerce/order/completeOrder/${token}`,
+      cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment`,
+      line_items: order.products.map((product) => {
+        return {
+          price_data: {
+            currency: "EGP",
+            product_data: {
+              name: product.name,
+            },
+            unit_amount: product.unitPaymentPrice * 100,
+          },
+          quantity: product.quantity,
+        };
+      }),
+      discounts: stripeCoupon ? [{ coupon: stripeCoupon.id }] : [],
+    });
+  }
+
   //======================== Invoice ============================
 
   await sendInvoice(order, req.user);
@@ -320,7 +379,7 @@ export const fromCartToOrder = async (req, res, next) => {
 
   return res
     .status(200)
-    .json({ message: "Order was successfully created", order });
+    .json({ message: "Order was successfully created", order, paymentData });
 };
 
 //================================================================
@@ -329,20 +388,103 @@ export const fromCartToOrder = async (req, res, next) => {
 export const requestNewPaymentSession = async (req, res, next) => {
   //check order if it is pending or not:
   //using payment data parameter:
+  //check if user already used a coupon or not!
   const { orderID } = req.query;
+  const order = await orderModel.findOne({ _id: orderID, userID: req.user.id });
+  if (!order) {
+    return next(
+      new Error("Order not found or order is not owned by user !", {
+        cause: 404,
+      })
+    );
+  }
+  if (order.orderStatus !== "pending") {
+    return next(new Error("Order is completed !", { cause: 404 }));
+  }
+  if (order.couponID) {
+    let coupon = await couponModel.findById(order.couponID);
+    if (!coupon) {
+      order.finalPaidAmount = order.subTotal;
+      order.couponID = "";
+      await order.save();
+      return next(
+        new Error(
+          "Coupon not found. Order final payment price has been changed. Request new payment session !",
+          { cause: 404 }
+        )
+      );
+    }
+    req.coupon = coupon;
+  }
+
+  //======================== Payment ===============================
+  let token = signToken({
+    payload: { orderID: order._id },
+    signature: "order-completeee-signature",
+  });
+
+  let paymentData;
+  let stripeCoupon;
+  //check if there is a coupon applied :
+  if (req.coupon) {
+    const stripeConnection = new Stripe(process.env.STRIPE_KEY);
+    if (req.coupon?.isPercentage) {
+      stripeCoupon = await stripeConnection.coupons.create({
+        percent_off: req.coupon?.couponAmount,
+      });
+    } else if (!req.coupon?.isPercentage) {
+      stripeCoupon = await stripeConnection.coupons.create({
+        amount_off: req.coupon?.couponAmount * 100,
+        currency: "EGP",
+      });
+    }
+  }
+
+  paymentData = await paymentFunction({
+    payment_method_types: ["card"],
+    mode: "payment",
+    customer_email: req.user.email,
+    success_url: `http://localhost:5000/eCommerce/order/completeOrder/${token}`,
+    cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment`,
+    line_items: order.products.map((product) => {
+      return {
+        price_data: {
+          currency: "EGP",
+          product_data: {
+            name: product.name,
+          },
+          unit_amount: product.unitPaymentPrice * 100,
+        },
+        quantity: product.quantity,
+      };
+    }),
+    discounts: stripeCoupon ? [{ coupon: stripeCoupon.id }] : [],
+  });
+  return res
+    .status(200)
+    .json({ message: "New payment session created !", order, paymentData });
 };
 
 //================================================================
 //================================================================
 
 export const completeOrder = async (req, res, next) => {
-  const { orderID } = req.query;
-  const order = await orderModel.findById(orderID);
-  if (!order) {
-    return next(new Error("Order not found", { cause: 404 }));
+  const { token } = req.params;
+  const decoded = verifyToken({
+    token,
+    signature: "order-completeee-signature",
+  });
+  if (!decoded?.orderID) {
+    return next(new Error("Invalid token !", { cause: 400 }));
   }
-  order.orderStatus = "completed";
-  await order.save();
+  const order = await orderModel.findOneAndUpdate(
+    { _id: decoded.orderID, orderStatus: "pending" },
+    { orderStatus: "completed" },
+    { new: true }
+  );
+  if (!order) {
+    return next(new Error("Order not found or completed !", { cause: 404 }));
+  }
   return res.status(200).json({ message: "Order completed successfully" });
 };
 

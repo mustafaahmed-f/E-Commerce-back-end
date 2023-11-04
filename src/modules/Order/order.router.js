@@ -9,6 +9,15 @@ import { checkAvailability } from "../../middlewares/checkAvailability.js";
 
 const router = Router();
 
+router.get(
+  "/completeOrder/:token",
+  validation(validators.completeOrder),
+  asyncHandler(orderController.completeOrder)
+);
+
+//================================================================================
+//================================================================================
+
 router.use(auth([userRole.user]));
 router.use(checkAvailability);
 
@@ -23,14 +32,10 @@ router.post(
   validation(validators.fromCartToOrder),
   asyncHandler(orderController.fromCartToOrder)
 );
-router.put(
-  "/completeOrder",
-  validation(validators.completeOrder),
-  asyncHandler(orderController.completeOrder)
-);
+
 router.get(
   "/requestNewPaymentSession",
-  validation(validators.completeOrder),
+  validation(validators.requestNewPaymentSession),
   asyncHandler(orderController.requestNewPaymentSession)
 );
 router.get("/getUserOrders", asyncHandler(orderController.getUserOrders));

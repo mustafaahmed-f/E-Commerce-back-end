@@ -33,7 +33,7 @@ export const fromCartToOrder = {
       .items(joi.string().pattern(new RegExp("^(01)[1250][0-9]{8}$")))
       .required(),
     cartID: generalValidation._id.required(),
-    paymentMethod: joi.string().valid("visa card", "cash").required(),
+    paymentMethod: joi.string().valid("card", "cash").required(),
   }),
   headers: joi
     .object({
@@ -47,6 +47,15 @@ export const fromCartToOrder = {
 //================================================================
 
 export const completeOrder = {
+  params: joi.object({
+    token: generalValidation.token.required(),
+  }),
+};
+
+//================================================================
+//================================================================
+
+export const requestNewPaymentSession = {
   query: joi.object({
     orderID: generalValidation._id.required(),
   }),
@@ -57,18 +66,3 @@ export const completeOrder = {
     .required()
     .unknown(true),
 };
-
-//================================================================
-//================================================================
-
-// export const requestNewPaymentSession = {
-//   query: joi.object({
-//     orderID: generalValidation._id.required(),
-//   }),
-//   headers: joi
-//     .object({
-//       authorization: generalValidation.authorization,
-//     })
-//     .required()
-//     .unknown(true),
-// };

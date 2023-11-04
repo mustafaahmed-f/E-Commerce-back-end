@@ -20,7 +20,7 @@ import product_itemModel from "./DB/models/product_itemModel.js";
 import moment from "moment";
 config({ path: path.resolve("./config/config.env") });
 
-app.use(express.urlencoded());
+// app.use(express.urlencoded());
 
 deleteNonConfirmedUsers(); //Monthly check for unconfirmed users.
 

@@ -681,12 +681,14 @@ export const logIn = async (req, res, next) => {
       status: "online",
     }
   );
+
   const loginToken = await tokenModel.findOneAndUpdate(
     { user_id: user._id },
     {
       loginToken: Token,
     }
   );
+
   if (!loginToken || !loginUser) {
     await userModel.findByIdAndUpdate(user._id, {
       status: "offline",
@@ -696,7 +698,7 @@ export const logIn = async (req, res, next) => {
 
   return res
     .status(200)
-    .json({ message: "Logged in successfully ", token: Token, user });
+    .json({ message: "Logged in successfully ", token: Token });
 };
 
 //============================================================================

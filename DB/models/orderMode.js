@@ -24,6 +24,7 @@ const orderSchema = new Schema(
       type: Types.ObjectId,
       ref: "Coupon",
     },
+
     subTotal: { type: Number, required: true, default: 0 },
     finalPaidAmount: { type: Number, required: true, default: 0 },
     phoneNumbers: [{ type: String, required: true }],

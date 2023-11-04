@@ -34,7 +34,11 @@ const product_itemSchema = new Schema(
     },
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true }, //This causes an additional id field to appear in the response body.
+    toObject: { virtuals: true },
+  }
 );
 
 const product_itemModel =
