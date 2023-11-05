@@ -15,6 +15,12 @@ router.get(
   asyncHandler(orderController.completeOrder)
 );
 
+router.get(
+  "/cancelPayment/:token",
+  validation(validators.completeOrder),
+  asyncHandler(orderController.cancelPayment)
+);
+
 //================================================================================
 //================================================================================
 

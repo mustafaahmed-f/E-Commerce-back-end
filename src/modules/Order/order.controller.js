@@ -1,17 +1,15 @@
-import { nanoid } from "nanoid";
 import user_addressModel from "../../../DB/models/address/user_addressModel.js";
 import cartModel from "../../../DB/models/cartModel.js";
 import orderModel from "../../../DB/models/orderMode.js";
 import product_itemModel from "../../../DB/models/product_itemModel.js";
 import { couponValidation } from "../../utils/couponValidation.js";
-import createInvoice from "../../utils/pdfkit.js";
-import sendEmail from "../../services/sendEmail.js";
 import { sendInvoice } from "../../utils/sendInvoice.js";
 import { paymentFunction } from "../../utils/payment.js";
 import Stripe from "stripe";
 import { ApiFeatures } from "../../utils/apiFeatures.js";
 import couponModel from "../../../DB/models/couponModel.js";
 import { signToken, verifyToken } from "../../utils/tokenMethod.js";
+import userModel from "../../../DB/models/userModel.js";
 
 export const addOrder = async (req, res, next) => {
   const {
@@ -147,6 +145,8 @@ export const addOrder = async (req, res, next) => {
     signature: "order-completeee-signature",
   });
 
+  console.log(token);
+
   let paymentData;
 
   if (order.paymentMethod === "card") {
@@ -171,7 +171,7 @@ export const addOrder = async (req, res, next) => {
       mode: "payment",
       customer_email: req.user.email,
       success_url: `http://localhost:5000/eCommerce/order/completeOrder/${token}`,
-      cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment`,
+      cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment/${token}`,
       line_items: [
         {
           price_data: {
@@ -354,7 +354,7 @@ export const fromCartToOrder = async (req, res, next) => {
       mode: "payment",
       customer_email: req.user.email,
       success_url: `http://localhost:5000/eCommerce/order/completeOrder/${token}`,
-      cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment`,
+      cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment/${token}`,
       line_items: order.products.map((product) => {
         return {
           price_data: {
@@ -445,7 +445,7 @@ export const requestNewPaymentSession = async (req, res, next) => {
     mode: "payment",
     customer_email: req.user.email,
     success_url: `http://localhost:5000/eCommerce/order/completeOrder/${token}`,
-    cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment`,
+    cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment/${token}`,
     line_items: order.products.map((product) => {
       return {
         price_data: {
@@ -506,4 +506,56 @@ export const getUserOrders = async (req, res, next) => {
     return next(new Error("Orders not found", { cause: 404 }));
   }
   return res.status(200).json({ message: "Done", orders });
+};
+
+//================================================================
+//================================================================
+
+export const cancelPayment = async (req, res, next) => {
+  const { token } = req.params;
+  const decoded = verifyToken({
+    token,
+    signature: "order-completeee-signature",
+  });
+  if (!decoded?.orderID) {
+    return next(new Error("Invalid token !", { cause: 400 }));
+  }
+  const order = await orderModel.findOneAndUpdate(
+    { _id: decoded.orderID, orderStatus: "pending" },
+    { orderStatus: "cancelled" },
+    { new: true }
+  );
+  if (!order) {
+    return next(new Error("Order not found or cancelled !", { cause: 404 }));
+  }
+
+  //return selected products to stock;
+  for (const product of order.products) {
+    const productItem = await product_itemModel.findById(product.productID);
+    if (!productItem) {
+      return next(new Error("Product not found !", { cause: 404 }));
+    }
+    productItem.stock += product.quantity;
+    await productItem.save();
+  }
+
+  //if Coupon , reduce used times of user :
+  if (order.couponID) {
+    const coupon = await couponModel.findById(order.couponID);
+    if (!coupon) {
+      return next(new Error("Coupon not found !", { cause: 404 }));
+    }
+    const checkUser = await userModel.findById(order.userID);
+    if (!checkUser) {
+      return next(new Error("User not found !", { cause: 404 }));
+    }
+    for (const user of coupon.assignedUsers) {
+      if (checkUser._id.toString() === user.user_id.toString()) {
+        user.usedTimes -= 1;
+      }
+    }
+    await coupon.save();
+  }
+
+  return res.status(200).json({ message: "Order cancelled" });
 };
