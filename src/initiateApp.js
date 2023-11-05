@@ -70,6 +70,7 @@ const bootstrap = (app, express) => {
   app.use(`${baseURL}/coupon`, routers.couponRouter);
   app.use(`${baseURL}/cart`, routers.cartRouter);
   app.use(`${baseURL}/order`, routers.orderRouter);
+  app.use(`${baseURL}/review`, routers.reviewRouter);
   app.use("*", (req, res) => {
     res.json({ message: "In-valid routing .. " });
   });
