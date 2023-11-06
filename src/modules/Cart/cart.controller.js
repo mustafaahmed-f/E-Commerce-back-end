@@ -186,7 +186,8 @@ export const deleteFromCart = async (req, res, next) => {
 
   const { cart, productItem } = await checkCartAndProduct(
     req.user.id,
-    productID
+    productID,
+    next
   );
 
   let productQuantity = 0;
@@ -288,7 +289,7 @@ export const emptyCart = async (req, res, next) => {
 //===============Check cart & product=======================
 //==========================================================
 
-export const checkCartAndProduct = async (userID, productID) => {
+export const checkCartAndProduct = async (userID, productID, next) => {
   const cart = await cartModel.findOne({
     userID,
   });
@@ -299,7 +300,19 @@ export const checkCartAndProduct = async (userID, productID) => {
   // Check if product item is available:
   const productItem = await product_itemModel.findById(productID);
   if (!productItem) {
-    return next(new Error("Product item doesn't exist ", { cause: 404 }));
+    await cartModel.findByIdAndUpdate(cart._id, {
+      $pull: {
+        products: {
+          productID,
+        },
+      },
+    });
+    return next(
+      new Error(
+        "Product item doesn't exist and has been removed from your cart",
+        { cause: 404 }
+      )
+    );
   }
 
   //check if product item exists in cart:

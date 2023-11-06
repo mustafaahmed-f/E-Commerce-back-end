@@ -62,7 +62,11 @@ const userSchema = new Schema(
     numOfConfirmRequests: { type: Number, default: 0 },
     numOfAddresses: { type: Number, default: 0 },
   },
-  { timestamps: true, toJSON: true, toObject: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true }, //This causes an additional id field to appear in the response body.
+    toObject: { virtuals: true },
+  }
 );
 
 userSchema.virtual("user_address", {

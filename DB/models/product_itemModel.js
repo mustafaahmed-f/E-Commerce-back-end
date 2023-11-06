@@ -33,6 +33,7 @@ const product_itemSchema = new Schema(
       public_id: { type: String, required: false }, //TODO : make required true after adding fake data
     },
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
+    rate: { type: Number, default: 0 },
   },
   {
     timestamps: true,
@@ -40,6 +41,12 @@ const product_itemSchema = new Schema(
     toObject: { virtuals: true },
   }
 );
+
+product_itemSchema.virtual("Reviews", {
+  ref: "Review",
+  localField: "_id",
+  foreignField: "productID",
+});
 
 const product_itemModel =
   model.Product_item || mongoose.model("Product_item", product_itemSchema);

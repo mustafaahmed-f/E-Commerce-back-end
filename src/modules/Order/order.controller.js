@@ -1,6 +1,6 @@
 import user_addressModel from "../../../DB/models/address/user_addressModel.js";
 import cartModel from "../../../DB/models/cartModel.js";
-import orderModel from "../../../DB/models/orderMode.js";
+import orderModel from "../../../DB/models/orderModel.js";
 import product_itemModel from "../../../DB/models/product_itemModel.js";
 import { couponValidation } from "../../utils/couponValidation.js";
 import { sendInvoice } from "../../utils/sendInvoice.js";

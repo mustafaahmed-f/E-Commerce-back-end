@@ -4,7 +4,6 @@ import { config } from "dotenv";
 import path from "path";
 import bootstrap from "./src/initiateApp.js";
 import { deleteNonConfirmedUsers } from "./src/utils/deleteNonConfirmedAcc.js";
-import * as v from "countries-api";
 
 import {
   fakeBrandsDataGenerator,
@@ -36,13 +35,3 @@ bootstrap(app, express);
 // fakeProductsDataGenerator();
 // fakeProductItemsDataGenerator();
 // fakeUsersDataGenerator();
-
-// await subCategoryModel.deleteMany({ categoryID: "6522a166729b40027df17245" });
-
-// await product_itemModel.create({
-//   productID: "652bd72e79426fcde4f5c66c",
-//   color: "white",
-//   sizes: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
-//   specifications: "test",
-//   stock: 10,
-// });

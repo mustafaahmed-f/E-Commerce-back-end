@@ -13,6 +13,9 @@ import product_itemModel from "../../../DB/models/product_itemModel.js";
 export const getEveryProduct = async (req, res, next) => {
   const products = await productModel.find().populate({
     path: "productItems",
+    populate: {
+      path: "Reviews",
+    },
   });
   if (!products.length) {
     return next(new Error("No products were found !", { cause: 404 }));
@@ -28,7 +31,15 @@ export const getAllProducts = async (req, res, next) => {
     .select();
   const products = await apiFeaturesInstance.mongooseQuery.populate({
     path: "productItems",
+    populate: {
+      path: "Reviews",
+      populate: {
+        path: "userID",
+        select: "userName",
+      },
+    },
   });
+  // console.log(products);
   if (!products.length) {
     return next(new Error("No products were found !", { cause: 404 }));
   }
@@ -55,7 +66,11 @@ export const getSpecificProduct = async (req, res, next) => {
 export const getSpecificProductItem = async (req, res, next) => {
   const { _id } = req.params;
   const productItem = await product_itemModel.findById(_id).populate({
-    path: "productID",
+    path: "Reviews",
+    populate: {
+      path: "userID",
+      select: "userName",
+    },
   });
   if (!productItem) {
     return next(new Error("No product item was found !", { cause: 404 }));

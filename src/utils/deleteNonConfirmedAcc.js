@@ -2,7 +2,7 @@ import schedule from "node-schedule";
 import userModel from "../../DB/models/userModel.js";
 
 export const deleteNonConfirmedUsers = () => {
-  schedule.scheduleJob("* * * */1 *", async function () {
+  schedule.scheduleJob("0 * * */1 *", async function () {
     const dateNow = new Date().getTime();
     const users = await userModel.find();
 
