@@ -667,6 +667,23 @@ export const logIn = async (req, res, next) => {
     }
   }
 
+  if (user.avoidMultipleLogIns) {
+    return next(
+      new Error("You can't make multiple login attempts within 1 minute", {
+        cause: 400,
+      })
+    );
+  }
+
+  await userModel.updateOne({ _id: user._id }, { avoidMultipleLogIns: true });
+
+  setTimeout(async () => {
+    await userModel.updateOne(
+      { _id: user._id },
+      { avoidMultipleLogIns: false }
+    );
+  }, 1000 * 60);
+
   const Token = signToken({
     payload: { _id: user._id },
     signature: process.env.LOGIN_SIGNATURE,
@@ -684,23 +701,6 @@ export const logIn = async (req, res, next) => {
   if (!loginToken) {
     return next(new Error("Failed to login!!", { cause: 500 }));
   }
-
-  if (user.avoidMultipleLogIns) {
-    return next(
-      new Error("You can't make multiple login attempts within 1 minute", {
-        cause: 400,
-      })
-    );
-  }
-
-  await userModel.updateOne({ _id: user._id }, { avoidMultipleLogIns: true });
-
-  setTimeout(async () => {
-    await userModel.updateOne(
-      { _id: user._id },
-      { avoidMultipleLogIns: false }
-    );
-  }, 1000 * 60);
 
   return res
     .status(200)
@@ -738,6 +738,23 @@ export const loginWithGmail = async (req, res, next) => {
       return next(new Error("Provider is not GOOGLE", { cause: 400 }));
     }
 
+    if (user.avoidMultipleLogIns) {
+      return next(
+        new Error("You can't make multiple login attempts within 1 minute", {
+          cause: 400,
+        })
+      );
+    }
+
+    await userModel.updateOne({ _id: user._id }, { avoidMultipleLogIns: true });
+
+    setTimeout(async () => {
+      await userModel.updateOne(
+        { _id: user._id },
+        { avoidMultipleLogIns: false }
+      );
+    }, 1000 * 60);
+
     const Token = signToken({
       payload: { _id: user._id },
       signature: process.env.LOGIN_SIGNATURE,
@@ -756,23 +773,6 @@ export const loginWithGmail = async (req, res, next) => {
     if (!loginToken) {
       return next(new Error("Failed to login!!", { cause: 500 }));
     }
-
-    if (user.avoidMultipleLogIns) {
-      return next(
-        new Error("You can't make multiple login attempts within 1 minute", {
-          cause: 400,
-        })
-      );
-    }
-
-    await userModel.updateOne({ _id: user._id }, { avoidMultipleLogIns: true });
-
-    setTimeout(async () => {
-      await userModel.updateOne(
-        { _id: user._id },
-        { avoidMultipleLogIns: false }
-      );
-    }, 1000 * 60);
 
     return res
       .status(200)

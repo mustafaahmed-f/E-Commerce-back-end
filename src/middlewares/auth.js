@@ -84,6 +84,11 @@ export const auth = (accessRoles) => {
             );
           }
 
+          //remove old token:
+          searchForUserID.loginToken = searchForUserID.loginToken.filter(
+            (eachToken) => eachToken != token
+          );
+
           //push new token in token model :
           searchForUserID.loginToken.push(newToken);
           await searchForUserID.save();

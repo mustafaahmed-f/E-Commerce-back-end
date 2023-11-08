@@ -513,7 +513,6 @@ export const deactivateUser = async (req, res, next) => {
 //================================================================
 
 export const logOut = async (req, res, next) => {
-  const { token } = req.query;
   const user = await userModel.updateOne(
     { _id: req.user.id },
     {
@@ -525,7 +524,11 @@ export const logOut = async (req, res, next) => {
       user_id: req.user.id,
     },
     {
-      $pull: { loginToken: token },
+      $pull: {
+        loginToken: req.headers.authorization.split(
+          process.env.TOKEN_BEARER
+        )[1],
+      },
     }
   );
 
