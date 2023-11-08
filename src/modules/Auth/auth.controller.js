@@ -14,16 +14,8 @@ import { OAuth2Client } from "google-auth-library";
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 
 export const signUp = async (req, res, next) => {
-  const {
-    userName,
-    email,
-    password,
-    phoneNumber,
-    role,
-    gender,
-    birthDate,
-    address,
-  } = req.body;
+  const { userName, email, password, phoneNumber, gender, birthDate, address } =
+    req.body;
 
   // Check dublicated email , userName & phoneNumber;
   const checkDublicatedUserName = await userModel.findOne({ userName });
@@ -66,7 +58,6 @@ export const signUp = async (req, res, next) => {
     email,
     password,
     phoneNumber,
-    role,
     gender,
     birthDate,
     customID,
@@ -508,7 +499,9 @@ export const forgotPassword = async (req, res, next) => {
     return;
   }
 
-  if (user.forgotPasswordToken) {
+  const userTokens = await tokenModel.findOne({ user_id: user.id });
+
+  if (userTokens.forgotPasswordToken) {
     return next(
       new Error("We have already sent a reset password link !", { cause: 400 })
     );
@@ -657,6 +650,11 @@ export const logIn = async (req, res, next) => {
   //check if user is online :
   if (user.status === "online") {
     return res.status(400).json({ message: "User is already logged in !" });
+  }
+
+  //check if user is blocked:
+  if (user.isBlocked) {
+    return next(new Error("User is blocked", { cause: 400 }));
   }
 
   //check if user is deactivated :

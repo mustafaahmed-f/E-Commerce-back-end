@@ -21,7 +21,6 @@ export const signUp = {
         .string()
         .pattern(new RegExp("^(01)[1250][0-9]{8}$"))
         .required(),
-      role: joi.string().valid("user", "admin", "superAdmin"),
       gender: joi.string().valid("male", "female"),
       birthDate: joi.date().iso().less("now"),
     })
