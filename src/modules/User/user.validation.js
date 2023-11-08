@@ -54,6 +54,9 @@ export const deactivateUser = {
 
 export const logOut = {
   headers: userIDandTokenValidation.headers,
+  query: joi.object({
+    token: generalValidation.token.required(),
+  }),
 };
 
 export const changeRole = {

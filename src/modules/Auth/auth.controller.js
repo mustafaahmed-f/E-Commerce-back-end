@@ -13,6 +13,8 @@ import { OAuth2Client } from "google-auth-library";
 
 const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 
+let avoidMultipleLoginsTimer = null;
+
 export const signUp = async (req, res, next) => {
   const { userName, email, password, phoneNumber, gender, birthDate, address } =
     req.body;
@@ -683,6 +685,23 @@ export const logIn = async (req, res, next) => {
     return next(new Error("Failed to login!!", { cause: 500 }));
   }
 
+  if (user.avoidMultipleLogIns) {
+    return next(
+      new Error("You can't make multiple login attempts within 1 minute", {
+        cause: 400,
+      })
+    );
+  }
+
+  await userModel.updateOne({ _id: user._id }, { avoidMultipleLogIns: true });
+
+  setTimeout(async () => {
+    await userModel.updateOne(
+      { _id: user._id },
+      { avoidMultipleLogIns: false }
+    );
+  }, 1000 * 60);
+
   return res
     .status(200)
     .json({ message: "Logged in successfully ", token: Token });
@@ -737,6 +756,23 @@ export const loginWithGmail = async (req, res, next) => {
     if (!loginToken) {
       return next(new Error("Failed to login!!", { cause: 500 }));
     }
+
+    if (user.avoidMultipleLogIns) {
+      return next(
+        new Error("You can't make multiple login attempts within 1 minute", {
+          cause: 400,
+        })
+      );
+    }
+
+    await userModel.updateOne({ _id: user._id }, { avoidMultipleLogIns: true });
+
+    setTimeout(async () => {
+      await userModel.updateOne(
+        { _id: user._id },
+        { avoidMultipleLogIns: false }
+      );
+    }, 1000 * 60);
 
     return res
       .status(200)

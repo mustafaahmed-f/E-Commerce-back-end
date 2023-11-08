@@ -6,12 +6,13 @@ const nanoid = customAlphabet("12345678!_=abcdefghmZxyiolk:*", 15);
 import slugify from "slugify";
 import addressModel from "../../../DB/models/address/addressModel.js";
 import user_addressModel from "../../../DB/models/address/user_addressModel.js";
+import tokenModel from "../../../DB/models/tokenModel.js";
 
 export const getAuser = async (req, res, next) => {
   const { _id } = req.query;
   const user = await userModel
     .findOne({ _id })
-    .select("userName role status profileImage gender");
+    .select("userName role profileImage gender");
   if (!user) {
     return next(new Error("User is not found", { cause: 400 }));
   }
@@ -494,7 +495,6 @@ export const deactivateUser = async (req, res, next) => {
     { _id: req.user.id },
     {
       deactivated: true,
-      status: "offline",
     }
   );
   if (!user.modifiedCount) {
@@ -513,15 +513,33 @@ export const deactivateUser = async (req, res, next) => {
 //================================================================
 
 export const logOut = async (req, res, next) => {
+  const { token } = req.query;
   const user = await userModel.updateOne(
-    { _id: req.user.id, status: "online" },
+    { _id: req.user.id },
     {
-      status: "offline",
+      avoidMultipleLogIns: false,
     }
   );
+  const updateUserTokens = await tokenModel.findOneAndUpdate(
+    {
+      user_id: req.user.id,
+    },
+    {
+      $pull: { loginToken: token },
+    }
+  );
+
+  if (!updateUserTokens) {
+    return next(
+      new Error("failed to be logged out!", {
+        cause: 500,
+      })
+    );
+  }
+
   if (!user.modifiedCount) {
     return next(
-      new Error("User is not found or already logged out!", {
+      new Error("User is not found", {
         cause: 400,
       })
     );
