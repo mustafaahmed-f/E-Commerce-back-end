@@ -57,6 +57,10 @@ const userSchema = new Schema(
     numOfConfirmRequests: { type: Number, default: 0 },
     numOfAddresses: { type: Number, default: 0 },
     provider: { type: String, enum: ["GOOGLE", "system"], required: true },
+    avoidMultipleLogIns: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
