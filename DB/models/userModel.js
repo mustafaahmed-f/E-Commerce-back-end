@@ -61,6 +61,7 @@ const userSchema = new Schema(
     birthDate: String,
     numOfConfirmRequests: { type: Number, default: 0 },
     numOfAddresses: { type: Number, default: 0 },
+    provider: { type: String, enum: ["GOOGLE", "system"], required: true },
   },
   {
     timestamps: true,

@@ -2,6 +2,8 @@ import connection from "../DB/connect.js";
 import { globalErrorHandler } from "./utils/errorHandler.js";
 import * as routers from "./modules/index.route.js";
 import Stripe from "stripe";
+import cors from "cors";
+import morgan from "morgan";
 
 const bootstrap = (app, express) => {
   //=========================== Webhook ============================================
@@ -54,10 +56,10 @@ const bootstrap = (app, express) => {
   //================================================================================
 
   app.use(express.json());
-
+  app.use(morgan("dev"));
   const baseURL = `/eCommerce`;
   const port = 5000;
-
+  app.use(cors());
   app.get("/", (req, res) => {
     return res.send("Hello e-commerce!!");
   });

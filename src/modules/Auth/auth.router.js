@@ -51,5 +51,13 @@ router.post(
   validation(validators.setNewPassword),
   asyncHandler(authController.setNewPassword)
 );
+router.post("/loginWithGmail", asyncHandler(authController.loginWithGmail));
+
+router.put(
+  "/makeStatusOffline",
+  asyncHandler(authController.makeStatusOffline)
+);
+
+router.put("/gmailOffline", asyncHandler(authController.gmailOffline));
 
 export default router;
