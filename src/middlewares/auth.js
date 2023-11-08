@@ -48,20 +48,21 @@ export const auth = (accessRoles) => {
         };
 
         //update login token in token model if token is refreshed ..
-        const userLoginToken = await tokenModel.findOne({
-          user_id: user._id,
-        });
-        if (userLoginToken.loginToken != token) {
-          userLoginToken.loginToken = token;
-          await userLoginToken.save();
-        }
+        // const userLoginToken = await tokenModel.findOne({
+        //   user_id: user._id,
+        // });
+        // if (userLoginToken.loginToken != token) {
+        //   userLoginToken.loginToken = token;
+        //   await userLoginToken.save();
+        // }
+
         return next();
       } catch (error) {
         console.log({ error });
         //Refresh token :
         if (error.message == "jwt expired") {
           const searchForUserID = await tokenModel.findOne({
-            loginToken: token,
+            loginToken: { $in: [token] },
           });
           if (!searchForUserID) {
             return next(new Error("Invalid Token !", { cause: 400 }));
@@ -82,6 +83,11 @@ export const auth = (accessRoles) => {
               new Error("Error in generating new token !", { cause: 500 })
             );
           }
+
+          //push new token in token model :
+          searchForUserID.loginToken.push(newToken);
+          await searchForUserID.save();
+
           return res.status(200).json({
             message: "Token refreshed successfully !",
             New_Token: newToken,

@@ -28,11 +28,6 @@ const userSchema = new Schema(
       default: "user",
       enum: ["user", "admin", "superAdmin"],
     },
-    status: {
-      type: String,
-      default: "offline",
-      enum: ["online", "offline"],
-    },
     isConfirmed: {
       type: Boolean,
       default: false,

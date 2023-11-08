@@ -6,7 +6,7 @@ const tokenSchema = new Schema({
   newConfirmToken: String,
   confirmToken: String,
   forgotPasswordToken: String,
-  loginToken: String,
+  loginToken: [String],
   userToken: String,
 });
 

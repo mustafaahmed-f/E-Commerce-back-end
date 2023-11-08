@@ -4,16 +4,12 @@ import { asyncHandler } from "../utils/errorHandler.js";
 export const checkAvailability = asyncHandler(async (req, res, next) => {
   const user = await userModel.findById(req.user.id);
 
-  //Check Activation - blocked - status - confirmation
+  //Check Activation - blocked  - confirmation
 
   if (user.deactivated === true) {
     return next(new Error("Account is deactivated . Login to active it !"), {
       cause: 400,
     });
-  }
-
-  if (user.status === "offline") {
-    return next(new Error("You must login first !!"), { cause: 400 });
   }
 
   if (user.isBlocked === true) {
