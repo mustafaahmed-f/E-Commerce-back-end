@@ -47,15 +47,6 @@ export const auth = (accessRoles) => {
           userName: user.userName,
         };
 
-        //update login token in token model if token is refreshed ..
-        // const userLoginToken = await tokenModel.findOne({
-        //   user_id: user._id,
-        // });
-        // if (userLoginToken.loginToken != token) {
-        //   userLoginToken.loginToken = token;
-        //   await userLoginToken.save();
-        // }
-
         return next();
       } catch (error) {
         console.log({ error });

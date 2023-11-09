@@ -687,8 +687,8 @@ export const logIn = async (req, res, next) => {
   const Token = signToken({
     payload: { _id: user._id },
     signature: process.env.LOGIN_SIGNATURE,
-    expiresIn: "1d",
-    // expiresIn: 20,
+    // expiresIn: "1d",
+    expiresIn: 60,
   });
 
   const loginToken = await tokenModel.findOneAndUpdate(
@@ -805,96 +805,6 @@ export const loginWithGmail = async (req, res, next) => {
     },
   });
 };
-
-//============================================================================
-//============================================================================
-
-// export const makeStatusOffline = async (req, res, next) => {
-//   const { email, password, userName } = req.body;
-//   if (!email && !userName) {
-//     return next(new Error("Email or userName is required !!", { cause: 400 }));
-//   }
-//   const user = await userModel.findOne({ email });
-//   if (!user) {
-//     return next(
-//       new Error("Invalid email or user is not found", { cause: 400 })
-//     );
-//   }
-//   if (user.provider !== "system") {
-//     return next(new Error("User is not system user", { cause: 400 }));
-//   }
-//   const matchPassword = await bcrypt.compare(password, user.password);
-//   if (!matchPassword) {
-//     return next(new Error("Invalid password", { cause: 400 }));
-//   }
-
-//   //check Confirmation :
-//   if (user.isConfirmed === false) {
-//     return next(new Error("Please confrim your email first !", { cause: 400 }));
-//   }
-
-//   const loginUser = await userModel.updateOne(
-//     { _id: user._id },
-//     {
-//       status: "offline",
-//     }
-//   );
-
-//   if (!loginUser) {
-//     return next(new Error("Error", { cause: 400 }));
-//   }
-//   return res.status(200).json({
-//     message:
-//       "Status changed to offline successfully due to lost of token ! Login again.",
-//   });
-// };
-
-// //============================================================================
-// //============================================================================
-
-// export const gmailOffline = async (req, res, next) => {
-//   const { email, secretKey } = req.body;
-//   if (!email) {
-//     return next(new Error("Email is required !!", { cause: 400 }));
-//   }
-//   const user = await userModel.findOne({ email });
-//   if (!user) {
-//     return next(
-//       new Error("Invalid email or user is not found", { cause: 400 })
-//     );
-//   }
-
-//   if (secretKey !== process.env.SECRETKEY) {
-//     return next(new Error("Invalid secretKey", { cause: 400 }));
-//   }
-
-//   if (user.provider !== "GOOGLE") {
-//     return next(new Error("provider is not GOOGLE", { cause: 400 }));
-//   }
-//   const matchPassword = await bcrypt.compare(password, user.password);
-//   if (!matchPassword) {
-//     return next(new Error("Invalid password", { cause: 400 }));
-//   }
-
-//   if (user.status === "offline") {
-//     return next(new Error("User is already offline !", { cause: 400 }));
-//   }
-
-//   const loginUser = await userModel.updateOne(
-//     { _id: user._id },
-//     {
-//       status: "offline",
-//     }
-//   );
-
-//   if (!loginUser) {
-//     return next(new Error("Error", { cause: 400 }));
-//   }
-//   return res.status(200).json({
-//     message:
-//       "Status changed to offline successfully due to lost of token ! Login again.",
-//   });
-// };
 
 //============================================================================
 //=========================Utils==============================================
