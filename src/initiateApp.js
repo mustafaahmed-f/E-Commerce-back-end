@@ -58,7 +58,7 @@ const bootstrap = (app, express) => {
   app.use(express.json());
   app.use(morgan("dev"));
   const baseURL = `/eCommerce`;
-  const port = 5000;
+  const port = process.env.PORT || 5000;
   app.use(cors());
   app.get("/", (req, res) => {
     return res.send("Hello e-commerce!!");

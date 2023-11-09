@@ -687,8 +687,8 @@ export const logIn = async (req, res, next) => {
   const Token = signToken({
     payload: { _id: user._id },
     signature: process.env.LOGIN_SIGNATURE,
-    // expiresIn: "1d",
-    expiresIn: 60,
+    expiresIn: "1d",
+    // expiresIn: 60,
   });
 
   const loginToken = await tokenModel.findOneAndUpdate(
