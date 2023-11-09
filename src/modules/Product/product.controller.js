@@ -304,6 +304,7 @@ export const addProduct = async (req, res, next) => {
     color,
     size,
     paymentPrice: productPaymentPrice,
+    discountFinished: discount ? false : true,
     customID,
     images,
     mainImage,

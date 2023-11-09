@@ -170,8 +170,8 @@ export const addOrder = async (req, res, next) => {
       payment_method_types: ["card"],
       mode: "payment",
       customer_email: req.user.email,
-      success_url: `http://localhost:5000/eCommerce/order/completeOrder/${token}`,
-      cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment/${token}`,
+      success_url: `${req.protocol}://${req.headers.host}/eCommerce/order/completeOrder/${token}`,
+      cancel_url: `${req.protocol}://${req.headers.host}/eCommerce/order/cancelPayment/${token}`,
       line_items: [
         {
           price_data: {
@@ -353,8 +353,8 @@ export const fromCartToOrder = async (req, res, next) => {
       payment_method_types: ["card"],
       mode: "payment",
       customer_email: req.user.email,
-      success_url: `http://localhost:5000/eCommerce/order/completeOrder/${token}`,
-      cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment/${token}`,
+      success_url: `${req.protocol}://${req.headers.host}/eCommerce/order/completeOrder/${token}`,
+      cancel_url: `${req.protocol}://${req.headers.host}/eCommerce/order/cancelPayment/${token}`,
       line_items: order.products.map((product) => {
         return {
           price_data: {
@@ -444,8 +444,8 @@ export const requestNewPaymentSession = async (req, res, next) => {
     payment_method_types: ["card"],
     mode: "payment",
     customer_email: req.user.email,
-    success_url: `http://localhost:5000/eCommerce/order/completeOrder/${token}`,
-    cancel_url: `http://localhost:5000/eCommerce/order/cancelPayment/${token}`,
+    success_url: `${req.protocol}://${req.headers.host}/eCommerce/order/completeOrder/${token}`,
+    cancel_url: `${req.protocol}://${req.headers.host}/eCommerce/order/cancelPayment/${token}`,
     line_items: order.products.map((product) => {
       return {
         price_data: {
