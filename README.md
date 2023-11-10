@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
-  <head>
-  </head>
+  <head> </head>
   <body>
     <h1 style="text-align: center">
       E-Commerce project created with
@@ -26,6 +25,7 @@
       <li><a href="#Deployment">Deployment</a></li>
     </ul>
     <hr />
+
     <section id="About">
       <h2># About</h2>
       <p>
@@ -67,8 +67,56 @@
       </p>
     </section>
     <hr />
+
     <section id="Technologies">
       <h2># Technologies</h2>
+      <ul>
+        <li>Node.js</li>
+        <li>Express.js</li>
+        <li>MongoDB</li>
+        <li>Stripe</li>
+        <li>JWT</li>
+        <li>OAuth 2.0</li>
+        <li>Multer</li>
+        <li>Cloudinary</li>
+        <li>nodemon</li>
+        <li>Bcrypt</li>
+        <li>PDFkit</li>
+        <li>Joi</li>
+      </ul>
+    </section>
+    <hr />
+
+    <section id="Models&DB">
+      <h2># Models&DB</h2>
+      <img
+        src="https://res.cloudinary.com/dvvmu40wx/image/upload/v1699631624/eCommerce/E-Commerce_DB_htt5cq.png"
+        alt="E-commerce DB Design"
+      />
+    </section>
+    <hr />
+
+    <section id="Documentation">
+      <h2># Documentation</h2>
+      <img
+        src="https://res.cloudinary.com/dvvmu40wx/image/upload/v1699631784/eCommerce/Documentation_screen_shot_adxzpn.png"
+        alt="documentation"
+      />
+    </section>
+    <hr />
+
+    <section id="Deployment">
+      <h2># Deployment</h2>
+      <p>
+        Deployed on render.com synchronized with github repository and connected
+        with mongoDB atlas
+      </p>
+      <p>
+        Main Link :
+        <a href="https://ecommercebymustafa.onrender.com"
+          >https://ecommercebymustafa.onrender.com</a
+        >
+      </p>
     </section>
   </body>
 </html>
