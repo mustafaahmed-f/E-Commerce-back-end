@@ -1,23 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Page Title</title>
-    <style>
-      body {
-        padding: 10px;
-      }
-      @counter-style numberOfContents {
-        system: fixed;
-        symbol: 1 2 3 4 5;
-        suffix: " ";
-      }
-      ul {
-        list-style: numberOfContents;
-      }
-      li {
-        margin: 4px;
-      }
-    </style>
+  
   </head>
   <body>
     <h1 style="text-align: center">
