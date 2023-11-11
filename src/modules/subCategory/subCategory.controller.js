@@ -89,7 +89,14 @@ const getAllSubCategories = asyncHandler(async (req, res, next) => {
   //   path: "categoryID",
   // });
 
-  const subCategories = await apiFeaturesInstance.mongooseQuery;
+  const subCategories = await apiFeaturesInstance.mongooseQuery.populate({
+    path: "Products",
+    model: "Product",
+    populate: {
+      path: "productItems",
+      model: "Product_item",
+    },
+  });
 
   if (!subCategories.length) {
     return next(new Error("No SubCategories were found !", { cause: 400 }));

@@ -95,14 +95,34 @@ export const fakeCategoriesDataGenerator = async () => {
 //===================================================================
 
 export const fakeSubCategoriesDataGenerator = async () => {
-  const subCategoriesData = [];
+  const subCategoriesData = [
+    {
+      name: "Furniture & Decor",
+      secure_url:
+        "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699723510/eCommerce/sub_categories_images/Furniture_Decor_sub_category_eqhraz.jpg",
+    },
+    {
+      name: "Appliances",
+      secure_url:
+        "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699723515/eCommerce/sub_categories_images/Appliances_sub_category_omw23q.jpg",
+    },
+    {
+      name: "Kitchenware",
+      secure_url:
+        "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699723605/eCommerce/sub_categories_images/Kitchenware_sub_category_f0udzu.jpg",
+    },
+  ];
   for (let i = 0; i < subCategoriesData.length; i++) {
     let subCategory = {
-      name: "sub" + faker.string.alpha({ length: 10 }),
+      name: subCategoriesData[i].name,
       slug: "",
-      createdBy: "65206bde187c71d9a1a1a539",
+      createdBy: "654d2b04d4429b90acb70b3c",
       customID: nanoid(),
-      categoryID: "654fb3e2d659f47507cbb9c3",
+      categoryID: "654fb3e6d659f47507cbb9d2",
+      image: {
+        secure_url: subCategoriesData[i].secure_url,
+        public_id: "",
+      },
     };
     subCategory.slug = slugify(subCategory.name, "_");
 

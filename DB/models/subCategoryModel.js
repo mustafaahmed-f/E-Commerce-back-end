@@ -23,6 +23,12 @@ const subCategorySchema = new Schema(
   { timestamps: true }
 );
 
+subCategorySchema.virtual("Products", {
+  ref: "Product",
+  localField: "_id",
+  foreignField: "subCategoryID",
+});
+
 subCategorySchema.plugin(deleteProductsForSubCategories);
 
 const subCategoryModel =
