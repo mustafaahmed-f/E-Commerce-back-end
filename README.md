@@ -5,14 +5,8 @@
     <h1 style="text-align: center">
       E-Commerce project created with
       <span
-        style="
-          background-color: #8fc708;
-          padding: 6px;
-          color: #6b6d66;
-          border-radius: 5px;
-        "
       >
-        Node.js</span
+        <img alt="Nodejs" src="https://img.shields.io/badge/-Nodejs-43853d?style=flat-square&logo=Node.js&logoColor=white" /></span
       >
     </h1>
     <h2>Table of contents</h2>
