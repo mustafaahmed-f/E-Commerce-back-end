@@ -22,10 +22,19 @@ export const getAllCategories = async (req, res, next) => {
     .paignation()
     .filter()
     .select();
-  const categories = await apiFeaturesInstance.mongooseQuery.populate({
-    path: "subCategories",
-    model: "SubCategory",
-  });
+  const categories = await apiFeaturesInstance.mongooseQuery
+    .populate({
+      path: "subCategories",
+      model: "SubCategory",
+    })
+    .populate({
+      path: "Products",
+      model: "Product",
+      populate: {
+        path: "productItems",
+        model: "Product_item",
+      },
+    });
 
   if (!categories.length) {
     return res.status(404).json({ message: "No categories were found !" });

@@ -36,6 +36,12 @@ categorySchema.virtual("subCategories", {
   foreignField: "categoryID",
 });
 
+categorySchema.virtual("Products", {
+  ref: "Product",
+  localField: "_id",
+  foreignField: "categoryID",
+});
+
 categorySchema.plugin(deleteProductsForCategories);
 categorySchema.plugin(deleteSubCategoriesForCategories);
 
