@@ -86,6 +86,7 @@
     <hr />
     <section id="Models&DB">
       <h2># Models&DB</h2>
+      <p>Diagram link : <a href="https://dbdiagram.io/d/E-Commerce-DB-design-654e38e87d8bbd6465ef2f7e">https://dbdiagram.io/d/E-Commerce-DB-design-654e38e87d8bbd6465ef2f7e</a></p>
       <img
         src="https://res.cloudinary.com/dvvmu40wx/image/upload/v1699631624/eCommerce/E-Commerce_DB_htt5cq.png"
         alt="E-commerce DB Design"
