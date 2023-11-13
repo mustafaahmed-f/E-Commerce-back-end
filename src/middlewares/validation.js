@@ -18,7 +18,6 @@ export const validation = (joiSchema) => {
         }
       }
     }
-
     if (validationErrorArr.length) {
       req.validationErrorArr = validationErrorArr;
       return next(new Error(" ", { cause: 400 }));

@@ -29,32 +29,29 @@ export const getAllProducts = async (req, res, next) => {
     .paignation()
     .filter()
     .select();
-  const products = await apiFeaturesInstance.mongooseQuery.populate({
-    path: "productItems",
-    populate: {
-      path: "Reviews",
+  const products = await apiFeaturesInstance.mongooseQuery
+    .populate({
+      path: "productItems",
       populate: {
-        path: "userID",
-        select: "userName",
+        path: "Reviews",
+        populate: {
+          path: "userID",
+          select: "userName",
+        },
       },
-    },
-    populate: {
-      path: "productID",
-      select: "name categoryID subCategoryID brandID",
-      populate: {
-        path: "categoryID",
-        select: "name",
-      },
-      populate: {
-        path: "subCategoryID",
-        select: "name",
-      },
-      populate: {
-        path: "brandID",
-        select: "name",
-      },
-    },
-  });
+    })
+    .populate({
+      path: "categoryID",
+      select: "name",
+    })
+    .populate({
+      path: "subCategoryID",
+      select: "name",
+    })
+    .populate({
+      path: "brandID",
+      select: "name",
+    });
   // console.log(products);
   if (!products.length) {
     return next(new Error("No products were found !", { cause: 404 }));
