@@ -38,6 +38,21 @@ export const getAllProducts = async (req, res, next) => {
         select: "userName",
       },
     },
+    populate: {
+      path: "productID",
+      populate: {
+        path: "categoryID",
+        select: "name",
+      },
+      populate: {
+        path: "subCategoryID",
+        select: "name",
+      },
+      populate: {
+        path: "brandID",
+        select: "name",
+      },
+    },
   });
   // console.log(products);
   if (!products.length) {
@@ -65,13 +80,30 @@ export const getSpecificProduct = async (req, res, next) => {
 
 export const getSpecificProductItem = async (req, res, next) => {
   const { _id } = req.params;
-  const productItem = await product_itemModel.findById(_id).populate({
-    path: "Reviews",
-    populate: {
-      path: "userID",
-      select: "userName",
-    },
-  });
+  const productItem = await product_itemModel
+    .findById(_id)
+    .populate({
+      path: "Reviews",
+      populate: {
+        path: "userID",
+        select: "userName",
+      },
+    })
+    .populate({
+      path: "productID",
+      populate: {
+        path: "categoryID",
+        select: "name",
+      },
+      populate: {
+        path: "subCategoryID",
+        select: "name",
+      },
+      populate: {
+        path: "brandID",
+        select: "name",
+      },
+    });
   if (!productItem) {
     return next(new Error("No product item was found !", { cause: 404 }));
   }

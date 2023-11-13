@@ -97,19 +97,19 @@ export const fakeCategoriesDataGenerator = async () => {
 export const fakeSubCategoriesDataGenerator = async () => {
   const subCategoriesData = [
     {
-      name: "Furniture & Decor",
+      name: "Vitamins & Supplements",
       secure_url:
-        "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699723510/eCommerce/sub_categories_images/Furniture_Decor_sub_category_eqhraz.jpg",
+        "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699804285/eCommerce/sub_categories_images/Vitamins_Supplements_sub_category_vizqo6.jpg",
     },
     {
-      name: "Appliances",
+      name: "Fitness Accessories",
       secure_url:
-        "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699723515/eCommerce/sub_categories_images/Appliances_sub_category_omw23q.jpg",
+        "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699804394/eCommerce/sub_categories_images/Fitness_Accessories_sub_category_zqtlcb.jpg",
     },
     {
-      name: "Kitchenware",
+      name: "Personal Care Products",
       secure_url:
-        "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699723605/eCommerce/sub_categories_images/Kitchenware_sub_category_f0udzu.jpg",
+        "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699804465/eCommerce/sub_categories_images/Personal_Care_Products_sub_category_asgynq.jpg",
     },
   ];
   for (let i = 0; i < subCategoriesData.length; i++) {
@@ -118,7 +118,7 @@ export const fakeSubCategoriesDataGenerator = async () => {
       slug: "",
       createdBy: "654d2b04d4429b90acb70b3c",
       customID: nanoid(),
-      categoryID: "654fb3e6d659f47507cbb9d2",
+      categoryID: "654fb3e7d659f47507cbb9dd",
       image: {
         secure_url: subCategoriesData[i].secure_url,
         public_id: "",
@@ -136,12 +136,130 @@ export const fakeSubCategoriesDataGenerator = async () => {
 //===================================================================
 
 export const fakeBrandsDataGenerator = async () => {
-  for (let i = 0; i < 10; i++) {
+  const brandsData = [
+    {
+      name: "Apple",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808671/eCommerce/brands_images/apple_m00ad4.jpg",
+        public_id: "",
+      },
+    },
+    {
+      name: "Samsung",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808662/eCommerce/brands_images/Samsung_w8zupr.jpg",
+        public_id: "",
+      },
+    },
+    {
+      name: "sony",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808663/eCommerce/brands_images/sony_y7hf98.png",
+        public_id: "",
+      },
+    },
+    {
+      name: "canon",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808676/eCommerce/brands_images/canon_x8ltzi.jpg",
+        public_id: "",
+      },
+    },
+    {
+      name: "Toshiba",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808677/eCommerce/brands_images/toshiba_dorrzp.jpg",
+        public_id: "",
+      },
+    },
+    {
+      name: "penguin books",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808665/eCommerce/brands_images/Penguin_logo.svg_f7upey.png",
+        public_id: "",
+      },
+    },
+    {
+      name: "nike",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808695/eCommerce/brands_images/nike_brand_kssjpe.jpg",
+        public_id: "",
+      },
+    },
+    {
+      name: "adidas",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808689/eCommerce/brands_images/adidas_b6kwpd.jpg",
+        public_id: "",
+      },
+    },
+    {
+      name: "wilson",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808666/eCommerce/brands_images/wilson_jmrbit.png",
+        public_id: "",
+      },
+    },
+    {
+      name: "zara",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808667/eCommerce/brands_images/zara_anonyh.jpg",
+        public_id: "",
+      },
+    },
+    {
+      name: "Nodric naturals",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808692/eCommerce/brands_images/nodric_naturals_gczujf.jpg",
+        public_id: "",
+      },
+    },
+    {
+      name: "Jade yoga",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808673/eCommerce/brands_images/Jode_yoga_bcjd3h.png",
+        public_id: "",
+      },
+    },
+    {
+      name: "Signal",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808670/eCommerce/brands_images/Signal_dxoo3k.png",
+        public_id: "",
+      },
+    },
+    {
+      name: "Panasonic",
+      logo: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808677/eCommerce/brands_images/Panasonic_hik1oj.png",
+        public_id: "",
+      },
+    },
+  ];
+  for (let i = 0; i < brandsData.length; i++) {
     let brand = {
-      name: "bran" + faker.string.alpha({ length: 10 }),
+      name: brandsData[i].name,
       slug: "",
-      createdBy: "65206bde187c71d9a1a1a539",
+      createdBy: "654d2b04d4429b90acb70b3c",
       customID: nanoid(),
+      logo: {
+        secure_url: brandsData[i].logo.secure_url,
+        public_id: brandsData[i].logo.public_id,
+      },
     };
     brand.slug = slugify(brand.name, "_");
 
@@ -155,10 +273,120 @@ export const fakeBrandsDataGenerator = async () => {
 //===================================================================
 
 export const fakeProductsDataGenerator = async () => {
+  const productArr = [
+    {
+      name: "iPhone 12",
+      categoryID: "654fb3e2d659f47507cbb9c3",
+      subCategoryID: "654fb7d3b5c5c6ea1ae337d9",
+      brandID: "6551072a1ca34ee7a8b87ab5",
+    },
+    {
+      name: "Canon EOS R5",
+      categoryID: "654fb3e2d659f47507cbb9c3",
+      subCategoryID: "654fb7d7b5c5c6ea1ae337e8",
+      brandID: "6551072e1ca34ee7a8b87ac7",
+    },
+    {
+      name: "Men's T-Shirts",
+      categoryID: "654fb3e5d659f47507cbb9cd",
+      subCategoryID: "654fb84f1997bb3fd8436aea",
+      brandID: "6551072e1ca34ee7a8b87acd",
+    },
+    {
+      name: "Women's dresses",
+      categoryID: "654fb3e5d659f47507cbb9cd",
+      subCategoryID: "654fb8521997bb3fd8436af4",
+      brandID,
+    },
+    {
+      name: "Refrigerators",
+      categoryID: "654fb3e6d659f47507cbb9d2",
+      subCategoryID: "654fb9793926286ed1f4d312",
+      brandID,
+    },
+    {
+      name: "Microwaves",
+      categoryID: "654fb3e6d659f47507cbb9d2",
+      subCategoryID: "654fb9793926286ed1f4d312",
+      brandID,
+    },
+    {
+      name: "Face masks",
+      categoryID: "654fb3e6d659f47507cbb9d5",
+      subCategoryID: "6550f1ee95df7ffa18b82c35",
+      brandID,
+    },
+    {
+      name: "Shampoos",
+      categoryID: "654fb3e6d659f47507cbb9d5",
+      subCategoryID: "6550f1f195df7ffa18b82c40",
+      brandID,
+    },
+    {
+      name: "Treadmills",
+      categoryID: "654fb3e6d659f47507cbb9d7",
+      subCategoryID: "6550f2fee7b5d1160a83bc42",
+      brandID,
+    },
+    {
+      name: "Yoga mats",
+      categoryID: "654fb3e6d659f47507cbb9d7",
+      subCategoryID: "6550f2fee7b5d1160a83bc42",
+      brandID,
+    },
+    {
+      name: "Soccer ball",
+      categoryID: "654fb3e6d659f47507cbb9d7",
+      subCategoryID: "6550f303e7b5d1160a83bc52",
+      brandID,
+    },
+    {
+      name: "Tennis racket",
+      categoryID: "654fb3e6d659f47507cbb9d7",
+      subCategoryID: "6550f303e7b5d1160a83bc52",
+      brandID,
+    },
+    {
+      name: "Harrey potter series",
+      categoryID: "654fb3e6d659f47507cbb9d9",
+      subCategoryID: "6550f439bf9740cd22d7b750",
+      brandID,
+    },
+    {
+      name: "Notebooks",
+      categoryID: "654fb3e6d659f47507cbb9d9",
+      subCategoryID: "6550f43cbf9740cd22d7b75f",
+      brandID,
+    },
+    {
+      name: "Fish oils",
+      categoryID: "654fb3e7d659f47507cbb9dd",
+      subCategoryID: "6550f59a156b75ae67383edf",
+      brandID,
+    },
+    {
+      name: "Foam rollers",
+      categoryID: "654fb3e7d659f47507cbb9dd",
+      subCategoryID: "6550f59d156b75ae67383eea",
+      brandID: "6551072e1ca34ee7a8b87acf",
+    },
+    {
+      name: "Toothpaste",
+      categoryID: "654fb3e7d659f47507cbb9dd",
+      subCategoryID: "6550f59f156b75ae67383eef",
+      brandID,
+    },
+    {
+      name: "Dell laptops",
+      categoryID: "654fb3e2d659f47507cbb9c3",
+      subCategoryID: "654fb7d7b5c5c6ea1ae337e3",
+      brandID: "",
+    },
+  ];
   for (let i = 0; i < 5; i++) {
     let product = {
       name: "Pro_" + faker.commerce.productName(),
-      createdBy: "65206bde187c71d9a1a1a539",
+      createdBy: "654d2b04d4429b90acb70b3c",
       slug: "",
       categoryID: "6522a166729b40027df17247",
       subCategoryID: "652f739c75149d5c2255d8d0",
