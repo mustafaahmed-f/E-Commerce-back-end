@@ -5,14 +5,8 @@
     <h1 style="text-align: center">
       E-Commerce project created with
       <span
-        style="
-          background-color: #8fc708;
-          padding: 6px;
-          color: #6b6d66;
-          border-radius: 5px;
-        "
       >
-        Node.js</span
+        <img alt="Nodejs" src="https://img.shields.io/badge/-Nodejs-43853d?style=flat-square&logo=Node.js&logoColor=white" /></span
       >
     </h1>
     <h2>Table of contents</h2>
@@ -86,6 +80,7 @@
     <hr />
     <section id="Models&DB">
       <h2># Models&DB</h2>
+      <p>Diagram link : <a href="https://dbdiagram.io/d/E-Commerce-DB-design-654e38e87d8bbd6465ef2f7e">https://dbdiagram.io/d/E-Commerce-DB-design-654e38e87d8bbd6465ef2f7e</a></p>
       <img
         src="https://res.cloudinary.com/dvvmu40wx/image/upload/v1699631624/eCommerce/E-Commerce_DB_htt5cq.png"
         alt="E-commerce DB Design"
