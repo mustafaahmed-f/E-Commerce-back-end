@@ -40,6 +40,7 @@ export const getAllProducts = async (req, res, next) => {
     },
     populate: {
       path: "productID",
+      select: "name categoryID subCategoryID brandID",
       populate: {
         path: "categoryID",
         select: "name",
@@ -68,6 +69,29 @@ export const getSpecificProduct = async (req, res, next) => {
   const { _id } = req.params;
   const product = await productModel.findById(_id).populate({
     path: "productItems",
+    populate: {
+      path: "Reviews",
+      populate: {
+        path: "userID",
+        select: "userName",
+      },
+    },
+    populate: {
+      path: "productID",
+      select: "name categoryID subCategoryID brandID",
+      populate: {
+        path: "categoryID",
+        select: "name",
+      },
+      populate: {
+        path: "subCategoryID",
+        select: "name",
+      },
+      populate: {
+        path: "brandID",
+        select: "name",
+      },
+    },
   });
   if (!product) {
     return next(new Error("No product was found !", { cause: 404 }));
@@ -91,6 +115,7 @@ export const getSpecificProductItem = async (req, res, next) => {
     })
     .populate({
       path: "productID",
+      select: "name categoryID subCategoryID brandID",
       populate: {
         path: "categoryID",
         select: "name",

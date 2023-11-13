@@ -138,115 +138,31 @@ export const fakeSubCategoriesDataGenerator = async () => {
 export const fakeBrandsDataGenerator = async () => {
   const brandsData = [
     {
-      name: "Apple",
+      name: "Nodric track",
       logo: {
         secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808671/eCommerce/brands_images/apple_m00ad4.jpg",
-        public_id: "",
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699876683/eCommerce/brands_images/nodric_track_logo_hubhf4.jpg",
       },
     },
     {
-      name: "Samsung",
+      name: "MATRIX",
       logo: {
         secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808662/eCommerce/brands_images/Samsung_w8zupr.jpg",
-        public_id: "",
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699876683/eCommerce/brands_images/MATRIX_logo_rm8cns.png",
       },
     },
     {
-      name: "sony",
+      name: "MIDORI",
       logo: {
         secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808663/eCommerce/brands_images/sony_y7hf98.png",
-        public_id: "",
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699876683/eCommerce/brands_images/midori_p4syq5.jpg",
       },
     },
     {
-      name: "canon",
+      name: "Inkey list TM",
       logo: {
         secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808676/eCommerce/brands_images/canon_x8ltzi.jpg",
-        public_id: "",
-      },
-    },
-    {
-      name: "Toshiba",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808677/eCommerce/brands_images/toshiba_dorrzp.jpg",
-        public_id: "",
-      },
-    },
-    {
-      name: "penguin books",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808665/eCommerce/brands_images/Penguin_logo.svg_f7upey.png",
-        public_id: "",
-      },
-    },
-    {
-      name: "nike",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808695/eCommerce/brands_images/nike_brand_kssjpe.jpg",
-        public_id: "",
-      },
-    },
-    {
-      name: "adidas",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808689/eCommerce/brands_images/adidas_b6kwpd.jpg",
-        public_id: "",
-      },
-    },
-    {
-      name: "wilson",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808666/eCommerce/brands_images/wilson_jmrbit.png",
-        public_id: "",
-      },
-    },
-    {
-      name: "zara",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808667/eCommerce/brands_images/zara_anonyh.jpg",
-        public_id: "",
-      },
-    },
-    {
-      name: "Nodric naturals",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808692/eCommerce/brands_images/nodric_naturals_gczujf.jpg",
-        public_id: "",
-      },
-    },
-    {
-      name: "Jade yoga",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808673/eCommerce/brands_images/Jode_yoga_bcjd3h.png",
-        public_id: "",
-      },
-    },
-    {
-      name: "Signal",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808670/eCommerce/brands_images/Signal_dxoo3k.png",
-        public_id: "",
-      },
-    },
-    {
-      name: "Panasonic",
-      logo: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699808677/eCommerce/brands_images/Panasonic_hik1oj.png",
-        public_id: "",
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1699876683/eCommerce/brands_images/Inkey_list_b5210q.jpg",
       },
     },
   ];
@@ -296,73 +212,67 @@ export const fakeProductsDataGenerator = async () => {
       name: "Women's dresses",
       categoryID: "654fb3e5d659f47507cbb9cd",
       subCategoryID: "654fb8521997bb3fd8436af4",
-      brandID,
+      brandID: "6551072f1ca34ee7a8b87ad3",
     },
     {
       name: "Refrigerators",
       categoryID: "654fb3e6d659f47507cbb9d2",
       subCategoryID: "654fb9793926286ed1f4d312",
-      brandID,
+      brandID: "6551072e1ca34ee7a8b87ac9",
     },
     {
       name: "Microwaves",
       categoryID: "654fb3e6d659f47507cbb9d2",
       subCategoryID: "654fb9793926286ed1f4d312",
-      brandID,
-    },
-    {
-      name: "Face masks",
-      categoryID: "654fb3e6d659f47507cbb9d5",
-      subCategoryID: "6550f1ee95df7ffa18b82c35",
-      brandID,
+      brandID: "6551072f1ca34ee7a8b87adb",
     },
     {
       name: "Shampoos",
       categoryID: "654fb3e6d659f47507cbb9d5",
       subCategoryID: "6550f1f195df7ffa18b82c40",
-      brandID,
+      brandID: "65520ff23a3ca7469ebbf857",
     },
     {
       name: "Treadmills",
       categoryID: "654fb3e6d659f47507cbb9d7",
       subCategoryID: "6550f2fee7b5d1160a83bc42",
-      brandID,
+      brandID: "65520fef3a3ca7469ebbf84d",
     },
     {
       name: "Yoga mats",
       categoryID: "654fb3e6d659f47507cbb9d7",
       subCategoryID: "6550f2fee7b5d1160a83bc42",
-      brandID,
+      brandID: "6551072f1ca34ee7a8b87ad7",
     },
     {
       name: "Soccer ball",
       categoryID: "654fb3e6d659f47507cbb9d7",
       subCategoryID: "6550f303e7b5d1160a83bc52",
-      brandID,
+      brandID: "6551072e1ca34ee7a8b87acf",
     },
     {
       name: "Tennis racket",
       categoryID: "654fb3e6d659f47507cbb9d7",
       subCategoryID: "6550f303e7b5d1160a83bc52",
-      brandID,
+      brandID: "6551072e1ca34ee7a8b87ad1",
     },
     {
       name: "Harrey potter series",
       categoryID: "654fb3e6d659f47507cbb9d9",
       subCategoryID: "6550f439bf9740cd22d7b750",
-      brandID,
+      brandID: "6551072e1ca34ee7a8b87acb",
     },
     {
       name: "Notebooks",
       categoryID: "654fb3e6d659f47507cbb9d9",
       subCategoryID: "6550f43cbf9740cd22d7b75f",
-      brandID,
+      brandID: "65520ff33a3ca7469ebbf85c",
     },
     {
       name: "Fish oils",
       categoryID: "654fb3e7d659f47507cbb9dd",
       subCategoryID: "6550f59a156b75ae67383edf",
-      brandID,
+      brandID: "6551072f1ca34ee7a8b87ad5",
     },
     {
       name: "Foam rollers",
@@ -374,13 +284,13 @@ export const fakeProductsDataGenerator = async () => {
       name: "Toothpaste",
       categoryID: "654fb3e7d659f47507cbb9dd",
       subCategoryID: "6550f59f156b75ae67383eef",
-      brandID,
+      brandID: "6551072f1ca34ee7a8b87ad9",
     },
     {
-      name: "Dell laptops",
+      name: "Toshiba laptops",
       categoryID: "654fb3e2d659f47507cbb9c3",
       subCategoryID: "654fb7d7b5c5c6ea1ae337e3",
-      brandID: "",
+      brandID: "6551072e1ca34ee7a8b87ac9",
     },
   ];
   for (let i = 0; i < 5; i++) {
