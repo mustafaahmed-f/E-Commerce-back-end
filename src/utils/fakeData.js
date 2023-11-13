@@ -293,14 +293,14 @@ export const fakeProductsDataGenerator = async () => {
       brandID: "6551072e1ca34ee7a8b87ac9",
     },
   ];
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < productArr.length; i++) {
     let product = {
-      name: "Pro_" + faker.commerce.productName(),
+      name: productArr[i].name,
       createdBy: "654d2b04d4429b90acb70b3c",
       slug: "",
-      categoryID: "6522a166729b40027df17247",
-      subCategoryID: "652f739c75149d5c2255d8d0",
-      brandID: "6522c3dc61ac11c0cc18d6ad",
+      categoryID: productArr[i].categoryID,
+      subCategoryID: productArr[i].subCategoryID,
+      brandID: productArr[i].brandID,
     };
     product.slug = slugify(product.name, "_");
 

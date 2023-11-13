@@ -48,7 +48,7 @@ export const addProductItem = {
         .string()
         .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)), //Hexadecimal color,
       size: joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
-      specifications: joi.object(),
+      specifications: joi.object().unknown(true),
       description: joi.string().min(10).max(500),
       price: joi.number().required(),
       discount: joi.number(),
