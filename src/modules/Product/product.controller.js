@@ -428,12 +428,12 @@ export const addProductItem = async (req, res, next) => {
 
   //check dublicated name  product item :
 
-  const checkProductItemdublicatedName = await product_itemModel.findOne({
-    item_name,
-  });
-  if (checkProductItemdublicatedName) {
-    return next(new Error("Product Item name is duplicated !", { cause: 400 }));
-  }
+  // const checkProductItemdublicatedName = await product_itemModel.findOne({
+  //   item_name,
+  // });
+  // if (checkProductItemdublicatedName) {
+  //   return next(new Error("Product Item name is duplicated !", { cause: 400 }));
+  // }
 
   //==================================================================
 

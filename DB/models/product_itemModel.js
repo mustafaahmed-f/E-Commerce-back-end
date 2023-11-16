@@ -3,8 +3,8 @@ import mongoose, { Schema, Types, model } from "mongoose";
 const product_itemSchema = new Schema(
   {
     productID: { type: Types.ObjectId, ref: "Product", required: true },
-    item_name: { type: String, required: true, trim: true, unique: true }, // Name contains any specifications.
-    item_slug: { type: String, required: true, trim: true, unique: true },
+    item_name: { type: String, required: true, trim: true }, // Name contains any specifications.
+    item_slug: { type: String, required: true, trim: true },
     item_customID: String,
 
     color: String,

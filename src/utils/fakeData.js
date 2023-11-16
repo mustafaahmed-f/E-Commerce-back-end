@@ -311,24 +311,42 @@ export const fakeProductsDataGenerator = async () => {
 
 export const fakeProductItemsDataGenerator = async () => {
   let sizes = ["S", "M", "L", "XL", "XXL", "XXXL"];
-  for (let i = 0; i < 3; i++) {
+  for (let i = 1; i < 3; i++) {
     let product_item = {
-      productID: "653825e9049f28b552750ae9",
-      item_name: "Pro_item_" + faker.commerce.productName(),
-      description: faker.commerce.productDescription(),
+      productID: "655211b7e83e8c48aada13bc",
+      item_name: "adidas Mens Train Essentials 3-Stripes Training T-Shirt",
+      description:
+        "100% rec polyester - REGULAR-Crewneck - MADE IN PART W RECYCLED MATERIALS",
       item_slug: "",
       createdBy: "65206bde187c71d9a1a1a539",
       price: faker.commerce.price({ min: 20, max: 50000 }),
-      discount: faker.number.int({ min: 0, max: 100 }),
+      discount: 0,
       paymentPrice: 0,
       stock: faker.number.int({ min: 10, max: 50 }),
       item_customID: nanoid(),
-      color: faker.color.human(),
-      size: sizes[Math.floor(Math.random() * sizes.length)],
-      specifications: {
-        ram: "6GB",
-        processor: "Core i7",
-      }, // Custom specifications
+      color: "#5FA692",
+      size: sizes[i],
+      images: [
+        {
+          secure_url:
+            "https://res.cloudinary.com/dvvmu40wx/image/upload/v1700161707/eCommerce/product_items/men%27s%20tshirt/1_jp0mq6.jpg",
+          public_id: "",
+        },
+        {
+          secure_url:
+            "https://res.cloudinary.com/dvvmu40wx/image/upload/v1700161707/eCommerce/product_items/men%27s%20tshirt/2_dgmiw5.jpg",
+          public_id: "",
+        },
+      ],
+      mainImage: {
+        secure_url:
+          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1700161707/eCommerce/product_items/men%27s%20tshirt/main_ifesvy.jpg",
+        public_id: "",
+      },
+      // specifications: {
+      //   ram: "6GB",
+      //   processor: "Core i7",
+      // }, // Custom specifications
     };
     product_item.item_slug = slugify(product_item.item_name, "_");
     product_item.paymentPrice =

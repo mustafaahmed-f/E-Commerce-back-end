@@ -11,7 +11,7 @@ export const addProduct = {
         .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/))
         .required(),
       // validation for first product item :
-      item_name: joi.string().min(2).max(35).required(),
+      item_name: joi.string().min(2).required(),
       color: joi
         .string()
         .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)), //Hexadecimal color,
@@ -43,7 +43,7 @@ export const addProduct = {
 export const addProductItem = {
   body: joi
     .object({
-      item_name: joi.string().min(2).max(35).required(),
+      item_name: joi.string().min(2).required(),
       color: joi
         .string()
         .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)), //Hexadecimal color,
