@@ -22,7 +22,9 @@ export const asyncHandler = (fn) => {
         );
 
         if (!user) {
-          return next(new Error("Token in-valid !!", { cause: 500 }));
+          return next(
+            new Error("DB error or user is not found !!", { cause: 500 })
+          );
         }
         return next(
           new Error(
