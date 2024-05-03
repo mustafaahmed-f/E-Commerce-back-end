@@ -69,7 +69,7 @@ export const addCoupon = async (req, res, next) => {
     isPercentage,
     fromDate,
     toDate,
-    timerID,
+    timerID: JSON.stringify(timerID),
   });
 
   req.createdDoc = {
@@ -128,7 +128,7 @@ export const updateCoupon = async (req, res, next) => {
   }
   let newTimerID;
   if (fromDate || toDate) {
-    clearTimeout(coupon.timerID);
+    clearTimeout(JSON.parse(coupon.timerID));
     newTimerID = setTimeout(async () => {
       await couponModel.findByIdAndDelete(_id);
     }, newToDate - newFromDate);
@@ -142,7 +142,7 @@ export const updateCoupon = async (req, res, next) => {
       isPercentage,
       fromDate: newFromDate,
       toDate: newToDate,
-      timerID: newTimerID,
+      timerID: JSON.stringify(newTimerID),
     },
     {
       new: true,
