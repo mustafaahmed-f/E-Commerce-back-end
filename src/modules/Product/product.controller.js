@@ -213,7 +213,7 @@ export const addProduct = async (req, res, next) => {
     specifications,
     discount,
     discountType,
-    discountPeriod,
+    discountFinishDate,
   } = req.body;
   const { categoryID, subCategoryID, brandID } = req.query;
 
@@ -253,6 +253,12 @@ export const addProduct = async (req, res, next) => {
 
   //==================================================================
 
+  if (!req.files.image) {
+    return next(
+      new Error("You should at least upload main image !", { cause: 400 })
+    );
+  }
+
   //uploading main image :
 
   let mainImage = "";
@@ -269,22 +275,29 @@ export const addProduct = async (req, res, next) => {
   let images = [];
   //check for images
   if (req.files?.images?.length) {
-    for (const image of req.files.images) {
+    // for (const image of req.files.images) {
+    //   const { secure_url, public_id } = await cloudinary.uploader.upload(
+    //     image.path,
+    //     {
+    //       folder: `${process.env.cloud_folder}/Products/${customID}/${item_customID}`,
+    //     }
+    //   );
+    //   images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
+    // }
+
+    const uploadPromises = req?.files?.images.map(async (image) => {
       const { secure_url, public_id } = await cloudinary.uploader.upload(
         image.path,
         {
           folder: `${process.env.cloud_folder}/Products/${customID}/${item_customID}`,
         }
       );
-      images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
-    }
+      return { secure_url: `${secure_url}`, public_id: `${public_id}` };
+    });
+
+    images = await Promise.all(uploadPromises);
 
     req.imagePath = `${process.env.cloud_folder}/Products/${customID}`;
-  }
-  if (!req.files.image) {
-    return next(
-      new Error("You should at least upload main image !", { cause: 400 })
-    );
   }
 
   //==================================================================
@@ -314,21 +327,6 @@ export const addProduct = async (req, res, next) => {
       }
       productPaymentPrice = price - discount;
     }
-    if (discountPeriod) {
-      discountTimer = setTimeout(async function () {
-        console.log("period added and finished");
-        await product_itemModel.findOneAndUpdate(
-          { item_customID },
-          {
-            discount: null,
-            discountType: null,
-            discountPeriod: null,
-            discountFinished: true,
-            paymentPrice: price,
-          }
-        );
-      }, parseInt(discountPeriod));
-    }
   } else {
     productPaymentPrice = price;
   }
@@ -353,7 +351,7 @@ export const addProduct = async (req, res, next) => {
     price,
     discount,
     discountType,
-    discountPeriod,
+    discountFinishDate,
     stock,
     color,
     size,
@@ -410,7 +408,7 @@ export const addProductItem = async (req, res, next) => {
     specifications,
     discount,
     discountType,
-    discountPeriod,
+    discountFinishDate,
   } = req.body;
   const { productID } = req.query;
 
@@ -497,21 +495,6 @@ export const addProductItem = async (req, res, next) => {
       }
       productPaymentPrice = price - discount;
     }
-    if (discountPeriod) {
-      discountTimer = setTimeout(async function () {
-        console.log("period added and finished");
-        await product_itemModel.findOneAndUpdate(
-          { item_customID },
-          {
-            discount: null,
-            discountType: null,
-            discountPeriod: null,
-            discountFinished: true,
-            paymentPrice: price,
-          }
-        );
-      }, parseInt(discountPeriod));
-    }
   } else {
     productPaymentPrice = price;
   }
@@ -526,7 +509,7 @@ export const addProductItem = async (req, res, next) => {
     price,
     discount,
     discountType,
-    discountPeriod,
+    discountFinishDate,
     stock,
     color,
     size,
@@ -681,7 +664,7 @@ export const updateProductItem = async (req, res, next) => {
     size,
     discount,
     discountType,
-    discountPeriod,
+    discountFinishDate,
     specifications,
   } = req.body;
   const { _id, productID } = req.query;
@@ -715,23 +698,6 @@ export const updateProductItem = async (req, res, next) => {
   if (price) {
     currentPrice = price;
 
-    //update price if not new period:
-    if (!discountPeriod) {
-      clearTimeout(discountTimer);
-      discountTimer = setTimeout(async function () {
-        console.log("price updated and finished");
-        await product_itemModel.findByIdAndUpdate(
-          { _id },
-          {
-            discount: null,
-            discountType: null,
-            discountPeriod: null,
-            discountFinished: true,
-            paymentPrice: price,
-          }
-        );
-      }, parseInt(productItem.discountPeriod));
-    }
     //update payment price if there is no change in discount:
     if (!discount) {
       if (productItem.discountType == "percentage") {
@@ -744,31 +710,13 @@ export const updateProductItem = async (req, res, next) => {
     }
   }
 
-  //If period is updated:
-  if (discountPeriod) {
-    if (productItem.discount == null && discount == undefined) {
-      return next(new Error("Add new discount", { cause: 400 }));
-    }
-    clearTimeout(discountTimer);
-    discountTimer = setTimeout(async function () {
-      console.log("period updated and finished");
-      await product_itemModel.findByIdAndUpdate(
-        { _id },
-        {
-          discount: null,
-          discountType: null,
-          discountPeriod: null,
-          discountFinished: true,
-          paymentPrice: currentPrice,
-        }
-      );
-    }, parseInt(discountPeriod));
-  }
-
   //if discount is updated:
   //you should enter discount type:
   if (discount) {
-    if (discountPeriod == undefined && productItem.discountPeriod == null) {
+    if (
+      discountFinishDate == undefined &&
+      productItem.discountFinishDate == null
+    ) {
       return next(
         new Error(
           "Old discount period finished. Enter new discount period, please !",
@@ -837,7 +785,7 @@ export const updateProductItem = async (req, res, next) => {
       paymentPrice: productPaymentPrice,
       discount,
       discountType: discountType ?? productItem.discountType,
-      discountPeriod,
+      discountFinishDate,
       productID,
       mainImage,
     },

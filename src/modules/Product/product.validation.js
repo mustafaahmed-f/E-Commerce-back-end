@@ -21,7 +21,11 @@ export const addProduct = {
       price: joi.number().required(),
       discount: joi.number(),
       discountType: joi.string().valid("percentage", "amount"),
-      discountPeriod: joi.number().min(0),
+      discountFinishDate: joi
+        .date()
+        .iso()
+        .greater(joi.ref("fromDate"))
+        .required(),
       stock: joi.number().required(),
     })
     .required(),
@@ -53,7 +57,11 @@ export const addProductItem = {
       price: joi.number().required(),
       discount: joi.number(),
       discountType: joi.string().valid("percentage", "amount"),
-      discountPeriod: joi.number().min(0),
+      discountFinishDate: joi
+        .date()
+        .iso()
+        .greater(joi.ref("fromDate"))
+        .required(),
       stock: joi.number().required(),
     })
     .required(),
@@ -128,7 +136,11 @@ export const updateProductItem = {
       price: joi.number(),
       discount: joi.number(),
       discountType: joi.string().valid("percentage", "amount"),
-      discountPeriod: joi.number().min(0),
+      discountFinishDate: joi
+        .date()
+        .iso()
+        .greater(joi.ref("fromDate"))
+        .required(),
       stock: joi.number(),
       specifications: joi.object(),
     })

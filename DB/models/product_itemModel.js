@@ -19,7 +19,7 @@ const product_itemSchema = new Schema(
     price: { type: Number, required: true, default: 0 },
     discount: { type: Number, default: 0 },
     discountType: { type: String, enum: ["percentage", "amount", null] },
-    discountPeriod: Number,
+    discountFinishDate: Date,
     discountFinished: { type: Boolean, default: true },
     paymentPrice: { type: Number, default: 0 },
     images: [

@@ -4,7 +4,8 @@ import { config } from "dotenv";
 import path from "path";
 import bootstrap from "./src/initiateApp.js";
 import { deleteNonConfirmedUsers } from "./src/utils/deleteNonConfirmedAcc.js";
-import { startCronJob } from "./src/utils/deleteExpiredCoupons.js";
+import { deleteExpiredCouponsCron } from "./src/utils/deleteExpiredCoupons.js";
+import { checkFinishedDiscountsCron } from "./src/utils/checkFinishedDiscounts.js";
 import {
   fakeBrandsDataGenerator,
   fakeCategoriesDataGenerator,
@@ -17,7 +18,8 @@ import {
 config({ path: path.resolve("./config/config.env") });
 
 deleteNonConfirmedUsers(); //Monthly check for unconfirmed users.
-startCronJob(); // Weekly check for expired coupons
+deleteExpiredCouponsCron(); // Weekly check for expired coupons
+checkFinishedDiscountsCron(); //Daily check for finished discounts
 
 bootstrap(app, express);
 

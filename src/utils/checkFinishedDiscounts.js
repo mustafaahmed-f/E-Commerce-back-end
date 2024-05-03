@@ -1,22 +1,29 @@
+import cron from "node-cron";
 import async from "async";
 import { CronJob } from "cron";
-import couponModel from "../../DB/models/couponModel.js";
+import product_itemModel from "../../DB/models/product_itemModel.js";
 
-export const deleteExpiredCouponsCron = () => {
+export const checkFinishedDiscountsCron = () => {
   // Create a new cron job that runs every week on Sundays at 12:00 AM (midnight)
   const cronJob = new CronJob(
-    "0 0 * * 0",
+    "0 0 * * *",
     async () => {
       try {
         // Find all coupons that have finished
-        const coupons = await couponModel.find({
-          toDate: { $lte: new Date() },
+        const products = await product_itemModel.find({
+          discountFinishDate: { $lte: new Date() },
         });
 
         // Loop over the coupons asynchronously
-        await async.eachSeries(coupons, async (coupon) => {
+        await async.eachSeries(products, async (product) => {
           // Delete the finished coupon
-          await couponModel.findByIdAndDelete(coupon._id);
+          await product_itemModel.findByIdAndUpdate(product._id, {
+            discountFinished: true,
+            paymentPrice: product.price,
+            discountType: null,
+            discount: 0,
+            discountFinishDate: null,
+          });
         });
       } catch (error) {
         // Log the error
