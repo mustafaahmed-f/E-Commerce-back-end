@@ -17,8 +17,8 @@ const brandsSchema = new Schema(
       trim: true,
     },
     logo: {
-      secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
-      public_id: { type: String, required: false }, //TODO : make required true after adding fake data
+      secure_url: { type: String, required: true }, //TODO : make required true after adding fake data
+      public_id: { type: String, required: true }, //TODO : make required true after adding fake data
     },
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
     customID: { type: String },

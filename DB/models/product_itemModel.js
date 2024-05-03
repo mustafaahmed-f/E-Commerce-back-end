@@ -20,24 +20,24 @@ const product_itemSchema = new Schema(
     discount: { type: Number, default: 0 },
     discountType: { type: String, enum: ["percentage", "amount", null] },
     discountPeriod: Number,
-    discountFinished: { type: Boolean, default: false },
+    discountFinished: { type: Boolean, default: true },
     paymentPrice: { type: Number, default: 0 },
     images: [
       {
-        secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
-        public_id: { type: String, required: false }, //TODO : make required true after adding fake data
+        secure_url: { type: String, required: true }, //TODO : make required true after adding fake data
+        public_id: { type: String, required: true }, //TODO : make required true after adding fake data
       },
     ],
     mainImage: {
-      secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
-      public_id: { type: String, required: false }, //TODO : make required true after adding fake data
+      secure_url: { type: String, required: true }, //TODO : make required true after adding fake data
+      public_id: { type: String, required: true }, //TODO : make required true after adding fake data
     },
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
     rate: { type: Number, default: 0 },
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true }, //This causes an additional id field to appear in the response body.
+    toJSON: { virtuals: true }, //EXP This causes an additional id field to appear in the response body.
     toObject: { virtuals: true },
   }
 );

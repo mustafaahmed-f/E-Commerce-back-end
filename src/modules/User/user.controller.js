@@ -81,7 +81,7 @@ export const getSpecificUser = async (req, res, next) => {
       return next(new Error("Not allowed !", { cause: 403 }));
     }
   }
-  const user = await userModel.findOne({ _id });
+  const user = await userModel.findOne({ _id: req.user.id ?? _id });
   if (!user) {
     return next(new Error("User is not found", { cause: 400 }));
   }
@@ -165,6 +165,8 @@ export const addAdress = async (req, res, next) => {
     );
   }
 
+  console.log("Here 1");
+
   const checkOldAddresses = await user_addressModel
     .findOne({
       user_id: findUser._id,
@@ -182,13 +184,15 @@ export const addAdress = async (req, res, next) => {
     };
   }
 
-  //To avoid multiple default addresses
-  for (let i = 0; i < checkOldAddresses.addresses.length; i++) {
-    if (
-      checkOldAddresses.addresses[i]?.is_default === true &&
-      is_default == true
-    ) {
-      return next(new Error("You can only have one default address"));
+  if (checkOldAddresses) {
+    //To avoid multiple default addresses
+    for (let i = 0; i < checkOldAddresses.addresses.length; i++) {
+      if (
+        checkOldAddresses.addresses[i]?.is_default === true &&
+        is_default == true
+      ) {
+        return next(new Error("You can only have one default address"));
+      }
     }
   }
 
@@ -277,7 +281,7 @@ export const getAddresses = async (req, res, next) => {
     })
     .populate("addresses")
     .populate({ path: "user_id", select: "userName" });
-  if (!addresses) {
+  if (!addresses.length) {
     return next(new Error("Addresses are not found", { cause: 400 }));
   }
   return res.status(200).json({ message: "Done", addresses });

@@ -31,8 +31,7 @@ router.get(
 router.get(
   "/newConfirmEmail/:token",
   validation(validators.tokenOnly),
-  // asyncHandler(checkExistAndConfirmation("newConfirmEmail")),
-  // checkExistAndConfirmation("newConfirmEmail"),
+
   asyncHandler(authController.newConfirmEmail)
 );
 router.get(

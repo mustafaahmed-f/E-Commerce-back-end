@@ -45,6 +45,9 @@ const couponSchema = new Schema(
       type: Date,
       required: true,
     },
+    timerID: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

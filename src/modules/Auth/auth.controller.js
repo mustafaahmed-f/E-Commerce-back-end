@@ -16,7 +16,7 @@ const nanoid = customAlphabet("12345678!_=abcdefghm*", 10);
 let avoidMultipleLoginsTimer = null;
 
 export const signUp = async (req, res, next) => {
-  const { userName, email, password, phoneNumber, gender, birthDate, address } =
+  const { userName, email, password, phoneNumber, gender, birthDate } =
     req.body;
 
   // Check dublicated email , userName & phoneNumber;
@@ -30,17 +30,12 @@ export const signUp = async (req, res, next) => {
     return next(new Error("Email must be unique!", { cause: 400 }));
   }
 
-  // const hashedPassword = await bcrypt.hashSync(
-  //   password,
-  //   parseInt(process.env.SALT_ROUND)
-  // );
-
   const customID = nanoid();
 
   let secure_url_user = null;
   let public_id_user = null;
 
-  //check if there is a profile image ..
+  ////check if there is a profile image ..
 
   if (req.file) {
     const { secure_url, public_id } = await cloudinary.uploader.upload(
@@ -84,7 +79,7 @@ export const signUp = async (req, res, next) => {
   }
 
   const confirmCode = nanoid();
-  const hashedCode = await bcrypt.hashSync(
+  const hashedCode = bcrypt.hashSync(
     confirmCode,
     parseInt(process.env.SALT_ROUND)
   );
@@ -93,16 +88,13 @@ export const signUp = async (req, res, next) => {
     payload: { email, confirmCode: hashedCode },
     signature: process.env.CONFIRM_EMAIL_SIGNATURE,
     expiresIn: "1h",
-    // expiresIn: 10,
   });
 
   const newConfirmEmailToken = signToken({
     payload: { email },
     signature: process.env.CONFIRM_EMAIL_SIGNATURE,
     expiresIn: 60 * 60 * 24 * 14,
-    // expiresIn: 5,
   });
-  //   console.log(newConfirmEmailToken);
 
   const html = htmlTemplate({
     protocol: req.protocol,
@@ -287,7 +279,7 @@ export const confirmEmail = async (req, res, next) => {
   );
 
   if (!user) {
-    return res.send("User is already confirmed");
+    return res.send("User is already confirmed or not found !!");
   }
 
   const updatedToken = await tokenModel.findOneAndUpdate(
@@ -716,7 +708,7 @@ export const loginWithGmail = async (req, res, next) => {
   async function verify() {
     const ticket = await client.verifyIdToken({
       idToken,
-      audience: process.env.CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
+      audience: process.env.GOOGLE_CLIENT_ID, // Specify the CLIENT_ID of the app that accesses the backend
       // Or, if multiple clients access the backend:
       //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
     });

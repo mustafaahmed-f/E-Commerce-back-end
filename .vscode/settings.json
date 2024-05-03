@@ -16,7 +16,13 @@
     "titleBar.activeBackground": "#0f969c",
     "titleBar.activeForeground": "#e7e7e7",
     "titleBar.inactiveBackground": "#0f969c99",
-    "titleBar.inactiveForeground": "#e7e7e799"
+    "titleBar.inactiveForeground": "#e7e7e799",
+    "statusBar.debuggingBackground": "#9c150f",
+    "statusBar.debuggingForeground": "#e7e7e7",
+    "tab.activeBorder": "#13c3ca",
+    "iLoveWorkSpaceColors": true,
+    "iLoveWorkSpaceRandom": false
   },
-  "peacock.color": "#0F969C"
+  "peacock.color": "#0F969C",
+  "cSpell.language": "en,en-GB,en-US"
 }

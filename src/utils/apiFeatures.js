@@ -30,13 +30,6 @@ export class ApiFeatures {
   filter() {
     const { page, size, sort, select, search, ...filter } = this.queryObj;
 
-    // const neededQueries = ["sort", "page", "size", "select"];
-    // const allQuery = { ...this.queryObj };
-    // neededQueries.forEach((key) => {
-    //   if (this.queryObj.key) {
-    //     delete allQuery[key];
-    //   }
-    // });
     const finalFilterQuery = JSON.parse(
       JSON.stringify(filter).replace(
         /eq|ne|regex|options|gt|gte|lt|lte|in|nin/g,

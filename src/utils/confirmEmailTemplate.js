@@ -56,13 +56,13 @@ export const htmlTemplate = ({
   </tr>
   <tr >
   <td style="padding : 50px 0px">
-  <a href="${protocol}://${host}/eCommerce/auth/newConfirmEmail/${newConfirmToken}" style="margin:20px 0px 30px 0px;border-radius:4px;padding:10px 20px;border: 0;color:#fff;background-color:#630E2B; ">new confirm </a>
+  <a href='${protocol}://${host}/eCommerce/auth/newConfirmEmail/${newConfirmToken}' style="margin:20px 0px 30px 0px;border-radius:4px;padding:10px 20px;border: 0;color:#fff;background-color:#630E2B; ">new confirm </a>
   </td>
   </tr>
 
   <tr>
   <td style=padding-top:20px;">
-  <a href="${protocol}://${host}/eCommerce/auth/unsubscribe/${newConfirmToken}" style="margin:10px 0px 30px 0px;border-radius:4px;padding:10px 20px;border: 0;color:#fff;background-color:#630E2B; ">Unsubscribe</a>
+  <a href='${protocol}://${host}/eCommerce/auth/unsubscribe/${newConfirmToken}' style="margin:10px 0px 30px 0px;border-radius:4px;padding:10px 20px;border: 0;color:#fff;background-color:#630E2B; ">Unsubscribe</a>
   </td>
   </tr>
   

@@ -30,7 +30,7 @@ router.put(
 );
 
 //================================================================================
-//super admin or owner of the account can use this API
+////super admin or owner of the account can use this API
 router.delete(
   "/deleteUser",
   auth([userRole.superAdmin, userRole.user, userRole.admin]),
@@ -94,7 +94,7 @@ router.put(
   asyncHandler(userController.updateAddress)
 );
 router.put(
-  //used to change or upload profile image if use doesn't have one
+  //used to change profile image
   "/changeProfileImage",
   uploadFile(fileTypeValidation.image).single("image"),
   validation(validators.changeProfileImage),

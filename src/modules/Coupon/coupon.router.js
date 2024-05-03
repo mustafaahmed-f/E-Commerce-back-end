@@ -40,16 +40,16 @@ router.put(
   validation(validators.assignUsers),
   asyncHandler(couponController.assignUsers)
 );
-router.put(
-  "/assignProducts",
-  validation(validators.assignProducts),
-  asyncHandler(couponController.assignProducts)
-);
-// router.delete(
-//   "/deleteAssignUsers",
-//   validation(validators.deleteAssignUsers),
-//   asyncHandler(couponController.deleteAssignUsers)
+// router.put(
+//   "/assignProducts",
+//   validation(validators.assignProducts),
+//   asyncHandler(couponController.assignProducts)
 // );
+router.delete(
+  "/deleteAssignUsers",
+  validation(validators.deleteAssignUsers),
+  asyncHandler(couponController.deleteAssignUsers)
+);
 // router.delete(
 //   "/deleteAssignProducts",
 //   validation(validators.assignProducts),

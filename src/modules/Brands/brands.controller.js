@@ -103,11 +103,11 @@ const updateBrand = async (req, res, next) => {
       );
     }
 
-    //check dublicated name
-    const checkDublicatedName = await brandsModel.findOne({
+    //check duplicated name
+    const checkDuplicatedName = await brandsModel.findOne({
       name: name.toLowerCase(),
     });
-    if (checkDublicatedName) {
+    if (checkDuplicatedName) {
       return next(new Error("Name must be unique!", { cause: 400 }));
     }
 
@@ -166,7 +166,7 @@ const deleteBrand = async (req, res, next) => {
 
   return res
     .status(200)
-    .json({ message: "Brand has been seccussfully deleted !" });
+    .json({ message: "Brand has been successfully deleted !" });
 };
 
 //============================================================================

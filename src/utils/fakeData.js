@@ -314,7 +314,7 @@ export const fakeProductItemsDataGenerator = async () => {
   for (let i = 1; i < 3; i++) {
     let product_item = {
       productID: "655211b7e83e8c48aada13bc",
-      item_name: "adidas Mens Train Essentials 3-Stripes Training T-Shirt",
+      item_name: `adidas Mens Train Essentials 3-Stripes Training T-Shirt ${sizes[i]}`,
       description:
         "100% rec polyester - REGULAR-Crewneck - MADE IN PART W RECYCLED MATERIALS",
       item_slug: "",

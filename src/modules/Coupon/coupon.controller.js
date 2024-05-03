@@ -56,25 +56,26 @@ export const addCoupon = async (req, res, next) => {
     }
   }
 
+  const date1 = new Date(fromDate);
+  const date2 = new Date(toDate);
+
+  let timerID = setTimeout(async () => {
+    await couponModel.findByIdAndDelete(coupon._id);
+  }, date2 - date1);
+
   const coupon = await couponModel.create({
     couponCode,
     couponAmount,
     isPercentage,
     fromDate,
     toDate,
+    timerID,
   });
 
   req.createdDoc = {
     model: couponModel,
     _id: coupon._id,
   };
-
-  const date1 = new Date(fromDate);
-  const date2 = new Date(toDate);
-
-  couponTimer = setTimeout(async () => {
-    await couponModel.findByIdAndDelete(coupon._id);
-  }, date2 - date1);
 
   return res.status(201).json({
     message: "Coupon has been created successfully !!",
@@ -89,7 +90,7 @@ export const updateCoupon = async (req, res, next) => {
   const { _id } = req.query;
   const { couponCode, couponAmount, isPercentage, fromDate, toDate } = req.body;
 
-  const coupon = await couponModel.findOne({ _id });
+  const coupon = await couponModel.findById(_id);
   if (!coupon) {
     return next(new Error("Coupon is not found .", { cause: 404 }));
   }
@@ -125,9 +126,10 @@ export const updateCoupon = async (req, res, next) => {
       new Error("To date must be greater than from date", { cause: 400 })
     );
   }
+  let newTimerID;
   if (fromDate || toDate) {
-    clearTimeout(couponTimer);
-    couponTimer = setTimeout(async () => {
+    clearTimeout(coupon.timerID);
+    newTimerID = setTimeout(async () => {
       await couponModel.findByIdAndDelete(_id);
     }, newToDate - newFromDate);
   }
@@ -140,6 +142,7 @@ export const updateCoupon = async (req, res, next) => {
       isPercentage,
       fromDate: newFromDate,
       toDate: newToDate,
+      timerID: newTimerID,
     },
     {
       new: true,
@@ -202,7 +205,9 @@ export const assignUsers = async (req, res, next) => {
     .findOneAndUpdate(
       { _id },
       {
-        assignedUsers: users,
+        $push: {
+          assignedUsers: { $each: [...users] },
+        },
       },
       { new: true }
     )
