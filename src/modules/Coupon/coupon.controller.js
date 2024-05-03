@@ -59,17 +59,12 @@ export const addCoupon = async (req, res, next) => {
   const date1 = new Date(fromDate);
   const date2 = new Date(toDate);
 
-  let timerID = setTimeout(async () => {
-    await couponModel.findByIdAndDelete(coupon._id);
-  }, date2 - date1);
-
   const coupon = await couponModel.create({
     couponCode,
     couponAmount,
     isPercentage,
-    fromDate,
-    toDate,
-    timerID: JSON.stringify(timerID),
+    fromDate: date1,
+    toDate: date2,
   });
 
   req.createdDoc = {
@@ -93,6 +88,15 @@ export const updateCoupon = async (req, res, next) => {
   const coupon = await couponModel.findById(_id);
   if (!coupon) {
     return next(new Error("Coupon is not found .", { cause: 404 }));
+  }
+
+  if (new Date(coupon.toDate) <= new Date()) {
+    await couponModel.findByIdAndDelete(_id);
+    return next(
+      new Error("Coupon period is finished and coupon is deleted !!", {
+        cause: 400,
+      })
+    );
   }
 
   if (couponCode) {
@@ -126,13 +130,6 @@ export const updateCoupon = async (req, res, next) => {
       new Error("To date must be greater than from date", { cause: 400 })
     );
   }
-  let newTimerID;
-  if (fromDate || toDate) {
-    clearTimeout(JSON.parse(coupon.timerID));
-    newTimerID = setTimeout(async () => {
-      await couponModel.findByIdAndDelete(_id);
-    }, newToDate - newFromDate);
-  }
 
   const updatedCoupon = await couponModel.findOneAndUpdate(
     { _id },
@@ -142,7 +139,6 @@ export const updateCoupon = async (req, res, next) => {
       isPercentage,
       fromDate: newFromDate,
       toDate: newToDate,
-      timerID: JSON.stringify(newTimerID),
     },
     {
       new: true,
@@ -179,9 +175,18 @@ export const deleteCoupon = async (req, res, next) => {
 export const assignUsers = async (req, res, next) => {
   const { _id } = req.query;
   const { users } = req.body;
-  const coupon = await couponModel.find({ _id });
+  const coupon = await couponModel.findById(_id);
   if (!coupon.length) {
     return next(new Error("Coupon is not found", { cause: 404 }));
+  }
+
+  if (new Date(coupon.toDate) <= new Date()) {
+    await couponModel.findByIdAndDelete(_id);
+    return next(
+      new Error("Coupon period is finished and coupon is deleted !!", {
+        cause: 400,
+      })
+    );
   }
 
   //Check users' IDs and avoid dublicated users:
@@ -238,6 +243,16 @@ export const deleteAssignUsers = async (req, res, next) => {
   if (!coupon.length) {
     return next(new Error("Coupon is not found", { cause: 404 }));
   }
+
+  if (new Date(coupon.toDate) <= new Date()) {
+    await couponModel.findByIdAndDelete(_id);
+    return next(
+      new Error("Coupon period is finished and coupon is deleted !!", {
+        cause: 400,
+      })
+    );
+  }
+
   const oneCoupon = coupon[0];
   if (!oneCoupon.assignedUsers.length) {
     return next(new Error("Coupon has no assigned users", { cause: 404 }));

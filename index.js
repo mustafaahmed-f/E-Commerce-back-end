@@ -4,7 +4,7 @@ import { config } from "dotenv";
 import path from "path";
 import bootstrap from "./src/initiateApp.js";
 import { deleteNonConfirmedUsers } from "./src/utils/deleteNonConfirmedAcc.js";
-
+import { startCronJob } from "./src/utils/deleteExpiredCoupons.js";
 import {
   fakeBrandsDataGenerator,
   fakeCategoriesDataGenerator,
@@ -13,15 +13,11 @@ import {
   fakeUsersDataGenerator,
   fakeProductItemsDataGenerator,
 } from "./src/utils/fakeData.js";
-import productModel from "./DB/models/productModel.js";
-import subCategoryModel from "./DB/models/subCategoryModel.js";
-import product_itemModel from "./DB/models/product_itemModel.js";
-import moment from "moment";
+
 config({ path: path.resolve("./config/config.env") });
 
-// app.use(express.urlencoded());
-
 deleteNonConfirmedUsers(); //Monthly check for unconfirmed users.
+startCronJob(); // Weekly check for expired coupons
 
 bootstrap(app, express);
 
