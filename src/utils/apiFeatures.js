@@ -1,9 +1,11 @@
+import mongoose from "mongoose";
 import { paginationFunction } from "./pagination.js";
 
 export class ApiFeatures {
   constructor(mongooseQuery, queryObj) {
     this.mongooseQuery = mongooseQuery;
     this.queryObj = queryObj;
+    this.query = {};
   }
 
   //pagination
@@ -28,7 +30,18 @@ export class ApiFeatures {
 
   //filter
   filter() {
-    const { page, size, sort, select, search, ...filter } = this.queryObj;
+    const {
+      page,
+      size,
+      sort,
+      select,
+      search,
+      colors,
+      sizes,
+      rams,
+      memorySizes,
+      ...filter
+    } = this.queryObj;
 
     const finalFilterQuery = JSON.parse(
       JSON.stringify(filter).replace(
@@ -38,7 +51,19 @@ export class ApiFeatures {
         }
       )
     );
-    this.mongooseQuery.find(finalFilterQuery);
+    this.query = { ...this.query, ...finalFilterQuery };
+
+    //// Check If there is filtration for colors or sizes
+
+    if (colors && Array.isArray(colors) && colors.length > 0) {
+      this.query = { ...this.query, "colorsAndSizes.color": { $in: colors } };
+    }
+
+    if (sizes && Array.isArray(sizes) && sizes.length > 0) {
+      this.query = { ...this.query, "colorsAndSizes.size": { $in: sizes } };
+    }
+
+    this.mongooseQuery.find(this.query);
     return this;
   }
 }

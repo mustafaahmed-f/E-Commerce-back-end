@@ -9,9 +9,15 @@ export const addOrder = {
       .array()
       .items(joi.string().pattern(new RegExp("^(01)[1250][0-9]{8}$")))
       .required(),
-    productID: generalValidation._id.required(),
     productQuantity: joi.number().min(0).required(),
     paymentMethod: joi.string().valid("card", "cash").required(),
+    colorAndSize: joi.array().items(
+      joi.object({
+        color: joi.string(),
+        size: joi.string(),
+      })
+    ),
+    specifications: joi.object(),
   }),
   headers: joi
     .object({

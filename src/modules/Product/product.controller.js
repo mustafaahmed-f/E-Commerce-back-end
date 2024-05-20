@@ -1,5 +1,5 @@
 import productModel from "../../../DB/models/productModel.js";
-import subcategoryModel from "../../../DB/models/subCategoryModel.js";
+
 import categoryModel from "../../../DB/models/categoryModel.js";
 import { ApiFeatures } from "../../utils/apiFeatures.js";
 import subCategoryModel from "../../../DB/models/subCategoryModel.js";
@@ -8,7 +8,6 @@ import cloudinary from "../../utils/cloudinary.js";
 import { customAlphabet } from "nanoid";
 const nanoid = customAlphabet("12345678!_=abcdefghmZxyiolk:*", 15);
 import slugify from "slugify";
-import product_itemModel from "../../../DB/models/product_itemModel.js";
 
 export const getEveryProduct = async (req, res, next) => {
   const products = await productModel.find().populate({
@@ -24,39 +23,37 @@ export const getEveryProduct = async (req, res, next) => {
 };
 
 export const getAllProducts = async (req, res, next) => {
+  console.log(req.query);
   const apiFeaturesInstance = new ApiFeatures(productModel.find(), req.query)
     .sort()
     .paignation()
     .filter()
     .select();
-  const products = await apiFeaturesInstance.mongooseQuery
-    .populate({
-      path: "productItems",
-      populate: {
-        path: "Reviews",
-        populate: {
-          path: "userID",
-          select: "userName",
-        },
-      },
-    })
-    .populate({
+
+  console.log(apiFeaturesInstance.query);
+
+  const numOfDocuments = await productModel.countDocuments(
+    apiFeaturesInstance.query
+  );
+
+  console.log(numOfDoc);
+
+  const products = await apiFeaturesInstance.mongooseQuery.populate(
+    {
       path: "categoryID",
       select: "name",
-    })
-    .populate({
-      path: "subCategoryID",
-      select: "name",
-    })
-    .populate({
-      path: "brandID",
-      select: "name",
-    });
-  // console.log(products);
+    },
+
+    { path: "subCategoryID", select: "name" },
+
+    { path: "brandID", select: "name" }
+  );
+
   if (!products.length) {
     return next(new Error("No products were found !", { cause: 404 }));
   }
-  res.status(200).json({ message: "Done", products });
+
+  res.status(200).json({ message: "Done", products, numOfDocuments });
 };
 
 //===================================================================
@@ -65,71 +62,26 @@ export const getAllProducts = async (req, res, next) => {
 export const getSpecificProduct = async (req, res, next) => {
   const { _id } = req.params;
   const product = await productModel.findById(_id).populate({
-    path: "productItems",
     populate: {
-      path: "Reviews",
-      populate: {
-        path: "userID",
-        select: "userName",
-      },
+      path: "categoryID",
+      select: "name",
     },
     populate: {
-      path: "productID",
-      select: "name categoryID subCategoryID brandID",
-      populate: {
-        path: "categoryID",
-        select: "name",
-      },
-      populate: {
-        path: "subCategoryID",
-        select: "name",
-      },
-      populate: {
-        path: "brandID",
-        select: "name",
-      },
+      path: "subCategoryID",
+      select: "name",
+    },
+    populate: {
+      path: "brandID",
+      select: "name",
+    },
+    populate: {
+      path: "Reviews",
     },
   });
   if (!product) {
     return next(new Error("No product was found !", { cause: 404 }));
   }
   res.status(200).json({ message: "Done", product });
-};
-
-//===================================================================
-//===================================================================
-
-export const getSpecificProductItem = async (req, res, next) => {
-  const { _id } = req.params;
-  const productItem = await product_itemModel
-    .findById(_id)
-    .populate({
-      path: "Reviews",
-      populate: {
-        path: "userID",
-        select: "userName",
-      },
-    })
-    .populate({
-      path: "productID",
-      select: "name categoryID subCategoryID brandID",
-      populate: {
-        path: "categoryID",
-        select: "name",
-      },
-      populate: {
-        path: "subCategoryID",
-        select: "name",
-      },
-      populate: {
-        path: "brandID",
-        select: "name",
-      },
-    });
-  if (!productItem) {
-    return next(new Error("No product item was found !", { cause: 404 }));
-  }
-  res.status(200).json({ message: "Done", productItem });
 };
 
 //===================================================================
@@ -148,7 +100,7 @@ export const deleteProduct = async (req, res, next) => {
     }
   }
 
-  const product = await productModel.findByIdAndDelete(_id);
+  const product = await productModel.findOneAndDelete({ _id });
   if (!product) {
     return next(new Error("No product was found !", { cause: 404 }));
   }
@@ -159,57 +111,12 @@ export const deleteProduct = async (req, res, next) => {
 //===================================================================
 //===================================================================
 
-export const deleteProductItem = async (req, res, next) => {
-  const { _id } = req.query;
-  //Only admin added product and SuperAdmin can delete product:
-  const checkCreator = await product_itemModel.findOne({
-    _id,
-    createdBy: req.user.id,
-  });
-  if (!checkCreator) {
-    if (req.user.role != userRole.superAdmin) {
-      return next(new Error("You can't delete this product !", { cause: 400 }));
-    }
-  }
-
-  const productItem = await product_itemModel.findByIdAndDelete(_id);
-  if (!productItem) {
-    return next(new Error("No product was found !", { cause: 404 }));
-  }
-  const product = await productModel.findById(productItem.productID);
-  if (!product) {
-    return next(new Error("No product was found !", { cause: 404 }));
-  }
-
-  //delete related images:
-  if (productItem.images?.length || productItem.mainImage?.public_id) {
-    await cloudinary.api.delete_resources_by_prefix(
-      `${process.env.cloud_folder}/Products/${product.customID}/${productItem.item_customID}`
-    );
-    await cloudinary.api.delete_folder(
-      `${process.env.cloud_folder}/Products/${product.customID}/${productItem.item_customID}`
-    );
-  }
-
-  res
-    .status(200)
-    .json({ message: "Product item has been deleted successfully !" });
-};
-
-//===================================================================
-//===================================================================
-
-let discountTimer = null;
-
 export const addProduct = async (req, res, next) => {
   const {
     name,
-    description,
     price,
-    stock,
-    color,
-    size,
-    item_name,
+    colorsAndSizes,
+    productDetails,
     specifications,
     discount,
     discountType,
@@ -244,20 +151,15 @@ export const addProduct = async (req, res, next) => {
     return next(new Error("Product name is duplicated !", { cause: 400 }));
   }
 
-  const checkProductItemdublicatedName = await product_itemModel.findOne({
-    item_name,
-  });
-  if (checkProductItemdublicatedName) {
-    return next(new Error("Product Item name is duplicated !", { cause: 400 }));
-  }
-
   //==================================================================
 
-  if (!req.files.image) {
-    return next(
-      new Error("You should at least upload main image !", { cause: 400 })
-    );
-  }
+  //TODO : remove comment from the below code that checks if there is a main image or not
+
+  // if (!req.files.image) {
+  //   return next(
+  //     new Error("You should at least upload main image !", { cause: 400 })
+  //   );
+  // }
 
   //uploading main image :
 
@@ -275,21 +177,11 @@ export const addProduct = async (req, res, next) => {
   let images = [];
   //check for images
   if (req.files?.images?.length) {
-    // for (const image of req.files.images) {
-    //   const { secure_url, public_id } = await cloudinary.uploader.upload(
-    //     image.path,
-    //     {
-    //       folder: `${process.env.cloud_folder}/Products/${customID}/${item_customID}`,
-    //     }
-    //   );
-    //   images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
-    // }
-
     const uploadPromises = req?.files?.images.map(async (image) => {
       const { secure_url, public_id } = await cloudinary.uploader.upload(
         image.path,
         {
-          folder: `${process.env.cloud_folder}/Products/${customID}/${item_customID}`,
+          folder: `${process.env.cloud_folder}/Products/${customID}`,
         }
       );
       return { secure_url: `${secure_url}`, public_id: `${public_id}` };
@@ -303,9 +195,14 @@ export const addProduct = async (req, res, next) => {
   //==================================================================
 
   const slug = slugify(name, "_");
-  const item_slug = slugify(item_name, "_");
+
   let productPaymentPrice = 0;
 
+  //// Check if discount type or discountFinshData is sent without discount:
+
+  if ((discountType || discountFinishDate) && !discount) {
+    return next(new Error("Enter dicount ,please !", { cause: 400 }));
+  }
   //check discount and it's type :
   if (discount) {
     if (!discountType) {
@@ -327,39 +224,29 @@ export const addProduct = async (req, res, next) => {
       }
       productPaymentPrice = price - discount;
     }
+
+    if (!discountFinishDate) {
+      return next(
+        new Error("Enter dicount finish date ,please !", { cause: 400 })
+      );
+    }
   } else {
     productPaymentPrice = price;
   }
 
   const product = await productModel.create({
     name,
+    price,
     slug,
-    customID,
     categoryID,
     subCategoryID,
     brandID,
-    createdBy: req.user.id,
-  });
-
-  const productItem = await product_itemModel.create({
-    productID: product._id,
+    colorsAndSizes,
+    productDetails,
     specifications,
-    item_name,
-    item_customID,
-    item_slug,
-    description,
-    price,
     discount,
     discountType,
     discountFinishDate,
-    stock,
-    color,
-    size,
-    paymentPrice: productPaymentPrice,
-    discountFinished: discount ? false : true,
-    customID,
-    images,
-    mainImage,
     createdBy: req.user.id,
   });
 
@@ -368,16 +255,11 @@ export const addProduct = async (req, res, next) => {
     _id: product._id,
   };
 
-  req.createdDoc1 = {
-    model: product_itemModel,
-    _id: productItem._id,
-  };
-
-  if (!product || !productItem) {
+  if (!product) {
     //Delete all images:
     if (mainImage || images.length) {
       await cloudinary.api.delete_resources_by_prefix(
-        `${process.env.cloud_folder}/Products/${customID}/${item_customID}`
+        `${process.env.cloud_folder}/Products/${customID}`
       );
       await cloudinary.api.delete_folder(
         `${process.env.cloud_folder}/Products/${customID}`
@@ -390,159 +272,11 @@ export const addProduct = async (req, res, next) => {
   res.status(200).json({
     message: "Product has been added successfully !",
     product,
-    productItem,
   });
 };
 
 //===================================================================
 //===================================================================
-
-export const addProductItem = async (req, res, next) => {
-  const {
-    item_name,
-    description,
-    price,
-    stock,
-    color,
-    size,
-    specifications,
-    discount,
-    discountType,
-    discountFinishDate,
-  } = req.body;
-  const { productID } = req.query;
-
-  //Check for category , subcategory and brand
-
-  const item_customID = nanoid();
-
-  //check product existence:
-  const product = await productModel.findById(productID);
-  if (!product) {
-    return next(new Error("Product not found !", { cause: 404 }));
-  }
-
-  //==================================================================
-
-  //check dublicated name  product item :
-
-  // const checkProductItemdublicatedName = await product_itemModel.findOne({
-  //   item_name,
-  // });
-  // if (checkProductItemdublicatedName) {
-  //   return next(new Error("Product Item name is duplicated !", { cause: 400 }));
-  // }
-
-  //==================================================================
-
-  //uploading main image :
-
-  let mainImage = "";
-  if (req.files?.image?.length) {
-    const { secure_url, public_id } = await cloudinary.uploader.upload(
-      req.files.image[0].path,
-      {
-        folder: `${process.env.cloud_folder}/Products/${product.customID}/${item_customID}`,
-      }
-    );
-    mainImage = { secure_url: `${secure_url}`, public_id: `${public_id}` };
-  }
-
-  let images = [];
-  //check for images
-  if (req.files?.images?.length) {
-    for (const image of req.files.images) {
-      const { secure_url, public_id } = await cloudinary.uploader.upload(
-        image.path,
-        {
-          folder: `${process.env.cloud_folder}/Products/${product.customID}/${item_customID}`,
-        }
-      );
-      images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
-    }
-
-    req.imagePath = `${process.env.cloud_folder}/Products/${product.customID}`;
-  }
-  if (!req.files.image) {
-    return next(
-      new Error("You should at least upload main image !", { cause: 400 })
-    );
-  }
-
-  //==================================================================
-
-  const item_slug = slugify(item_name, "_");
-  let productPaymentPrice = 0;
-
-  //check discount and it's type :
-  if (discount) {
-    if (!discountType) {
-      return next(new Error("Enter dicount type ,please !", { cause: 400 }));
-    }
-    if (discountType == "percentage") {
-      if (discount > 100 || discount < 0) {
-        return next(
-          new Error("Discount must be between 0 and 100 !", { cause: 400 })
-        );
-      }
-      productPaymentPrice = price - (price * discount) / 100;
-    }
-    if (discountType == "amount") {
-      if (discount < 0 || discount > price) {
-        return next(
-          new Error("Discount must be between 0 and price !", { cause: 400 })
-        );
-      }
-      productPaymentPrice = price - discount;
-    }
-  } else {
-    productPaymentPrice = price;
-  }
-
-  const productItem = await product_itemModel.create({
-    productID: product._id,
-    specifications,
-    item_name,
-    item_customID,
-    item_slug,
-    description,
-    price,
-    discount,
-    discountType,
-    discountFinishDate,
-    stock,
-    color,
-    size,
-    paymentPrice: productPaymentPrice,
-    images,
-    mainImage,
-    createdBy: req.user.id,
-  });
-
-  req.createdDoc = {
-    model: product_itemModel,
-    _id: productItem._id,
-  };
-
-  if (!productItem) {
-    //Delete all images:
-    if (mainImage || images.length) {
-      await cloudinary.api.delete_resources_by_prefix(
-        `${process.env.cloud_folder}/Products/${product.customID}/${item_customID}`
-      );
-      await cloudinary.api.delete_folder(
-        `${process.env.cloud_folder}/Products/${product.customID}`
-      );
-    }
-
-    return next(new Error("Failed to add product item !", { cause: 404 }));
-  }
-
-  res.status(200).json({
-    message: "Product item has been added successfully !",
-    productItem,
-  });
-};
 
 //===================================================================
 //====================================================================
@@ -553,14 +287,9 @@ export const uploadImages = async (req, res, next) => {
 
   const { _id, public_id } = req.query;
 
-  const productItem = await product_itemModel.findById(_id);
-  if (!productItem) {
-    return next(new Error("Product item is not found !", { cause: 404 }));
-  }
-
-  const product = await productModel.findOne({ _id: productItem.productID });
+  const product = await productModel.findById(_id);
   if (!product) {
-    return next(new Error("Product is not found !", { cause: 404 }));
+    return next(new Error("Product item is not found !", { cause: 404 }));
   }
 
   if (!req.files.length) {
@@ -579,24 +308,26 @@ export const uploadImages = async (req, res, next) => {
     //public id can be multiple values to delete multiple images, so we check if it is an array or not.
     if (!Array.isArray(public_id)) {
       //Prevent deleting main image
-      if (productItem.mainImage.public_id == public_id) {
+      if (product.mainImage.public_id == public_id) {
         return next(new Error("You can't delete main image !", { cause: 400 }));
       }
       await cloudinary.uploader.destroy(public_id).catch((err) => {
         throw new Error(err.message, { cause: 500 });
       });
     } else {
-      if (public_id.includes(productItem.mainImage.public_id)) {
+      if (public_id.includes(product.mainImage.public_id)) {
         return next(new Error("You can't delete main image !", { cause: 400 }));
       }
-      for (const id of public_id) {
-        await cloudinary.uploader.destroy(id).catch((err) => {
-          throw new Error(err.message, { cause: 500 });
-        });
-      }
+      await Promise.all(
+        public_id.map(async (id) => {
+          await cloudinary.uploader.destroy(id).catch((err) => {
+            throw new Error(err.message, { cause: 500 });
+          });
+        })
+      );
     }
     //Remove image from DB
-    const deleteImages = await productItem.findByIdAndUpdate(_id, {
+    const deleteImages = await product.findByIdAndUpdate(_id, {
       $pull: { images: { public_id: public_id } },
     });
     if (!deleteImages) {
@@ -607,7 +338,7 @@ export const uploadImages = async (req, res, next) => {
   //upload new images.
 
   //check number of images :
-  if (req.files.length + productItem.images.length > 5) {
+  if (req.files.length + product.images.length > 5) {
     return next(
       new Error("You can't upload more than 5 secondary images !", {
         cause: 400,
@@ -617,20 +348,22 @@ export const uploadImages = async (req, res, next) => {
 
   let images = [];
   if (req.files) {
-    for (const image of req.files) {
-      const { secure_url, public_id } = await cloudinary.uploader.upload(
-        image.path,
-        {
-          folder: `${process.env.cloud_folder}/Products/${product.customID}/${productItem.item_customID}`,
-        }
-      );
-      images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
-    }
+    await Promise.all(
+      req.files.map(async (image) => {
+        const { secure_url, public_id } = await cloudinary.uploader.upload(
+          image.path,
+          {
+            folder: `${process.env.cloud_folder}/Products/${product.customID}`,
+          }
+        );
+        images.push({ secure_url: `${secure_url}`, public_id: `${public_id}` });
+      })
+    );
 
     req.additionalImages = images;
   }
 
-  const updatedProductItem = await product_itemModel.findByIdAndUpdate(
+  const updatedProduct = await product.findByIdAndUpdate(
     _id,
     {
       $push: {
@@ -641,39 +374,34 @@ export const uploadImages = async (req, res, next) => {
       new: true,
     }
   );
-  if (!updatedProductItem) {
+  if (!updatedProduct) {
     return next(new Error("Failed to update product !", { cause: 404 }));
   }
   return res.status(200).json({
     message: "Product images has been updated successfully !",
-    updatedProductItem,
+    updatedProduct,
   });
 };
 
 //===================================================================
 //===================================================================
 
-export const updateProductItem = async (req, res, next) => {
+export const updateProduct = async (req, res, next) => {
   //Here you can update everything except secondary images. You can use uploadImages API to update secondary images.
   const {
-    item_name,
-    description,
+    name,
+    productDetails,
+    colorsAndSizes,
     price,
     stock,
-    color,
-    size,
     discount,
     discountType,
     discountFinishDate,
     specifications,
   } = req.body;
-  const { _id, productID } = req.query;
+  const { categoryID, subCategoryID, brandID, _id } = req.query;
 
-  const productItem = await product_itemModel.findById(_id);
-  if (!productItem) {
-    return next(new Error("Product item is not found !", { cause: 404 }));
-  }
-  const product = await productModel.findOne({ _id: productID });
+  const product = await productModel.findById(_id);
   if (!product) {
     return next(new Error("Product is not found !", { cause: 404 }));
   }
@@ -681,31 +409,31 @@ export const updateProductItem = async (req, res, next) => {
   let mainImage = null;
   //check if main image is updated.
   if (req.file) {
-    await cloudinary.uploader.destroy(productItem.mainImage.public_id);
+    await cloudinary.uploader.destroy(product.mainImage.public_id);
 
     const { secure_url, public_id } = await cloudinary.uploader.upload(
       req.file.path,
       {
-        folder: `${process.env.cloud_folder}/Products/${product.customID}/${productItem.item_customID}`,
+        folder: `${process.env.cloud_folder}/Products/${product.customID}`,
       }
     );
 
     mainImage = { secure_url, public_id };
   }
 
-  let productPaymentPrice = productItem.productPaymentPrice;
-  let currentPrice = productItem.price;
+  let productPaymentPrice = product.productPaymentPrice;
+  let currentPrice = product.price;
   if (price) {
     currentPrice = price;
 
     //update payment price if there is no change in discount:
     if (!discount) {
-      if (productItem.discountType == "percentage") {
+      if (product.discountType == "percentage") {
         productPaymentPrice =
-          currentPrice - (currentPrice * productItem.discount) / 100;
+          currentPrice - (currentPrice * product.discount) / 100;
       }
-      if (productItem.discountType == "amount") {
-        productPaymentPrice = currentPrice - productItem.discount;
+      if (product.discountType == "amount") {
+        productPaymentPrice = currentPrice - product.discount;
       }
     }
   }
@@ -713,10 +441,7 @@ export const updateProductItem = async (req, res, next) => {
   //if discount is updated:
   //you should enter discount type:
   if (discount) {
-    if (
-      discountFinishDate == undefined &&
-      productItem.discountFinishDate == null
-    ) {
+    if (discountFinishDate == undefined && product.discountFinishDate == null) {
       return next(
         new Error(
           "Old discount period finished. Enter new discount period, please !",
@@ -724,7 +449,7 @@ export const updateProductItem = async (req, res, next) => {
         )
       );
     }
-    await product_itemModel.findByIdAndUpdate(_id, {
+    await productModel.findByIdAndUpdate(_id, {
       discountFinished: false,
     });
     if (!discountType) {
@@ -748,76 +473,27 @@ export const updateProductItem = async (req, res, next) => {
     }
   }
 
-  let slug = productItem.item_slug;
+  let slug = product.slug;
   //name change.
-  if (item_name) {
+  if (name) {
     //check dublicated name:
     if (
-      productItem.item_name.split(" ").join("").toLowerCase() ===
-      item_name.split(" ").join("").toLowerCase()
+      product.name.split(" ").join("").toLowerCase() ===
+      name.split(" ").join("").toLowerCase()
     ) {
       return next(new Error("Name must be unique", { cause: 400 }));
     }
-    slug = slugify(item_name, "_");
+    slug = slugify(name, "_");
   }
 
-  let productColor = productItem.color;
-  let productSize = productItem.size;
-  if (color) {
-    productColor = color;
-  }
-
-  if (size) {
-    productSize = size;
-  }
-
-  const savedProductItem = await product_itemModel.findByIdAndUpdate(
-    _id,
-    {
-      size: productSize,
-      color: productColor,
-      item_name,
-      item_slug: slug,
-      description,
-      specifications,
-      stock,
-      price: currentPrice,
-      paymentPrice: productPaymentPrice,
-      discount,
-      discountType: discountType ?? productItem.discountType,
-      discountFinishDate,
-      productID,
-      mainImage,
-    },
-    { new: true }
-  );
-
-  if (!savedProductItem) {
-    return next(new Error(" Couldn't save product item ", { cause: 500 }));
-  }
-  return res
-    .status(200)
-    .json({ message: "Success", product_Item: savedProductItem });
-};
-
-//===================================================================
-//===================================================================
-
-export const updateProduct = async (req, res, next) => {
-  const { name } = req.body;
-  const { categoryID, subCategoryID, brandID, _id } = req.query;
-
-  //check product existence:
-  const product = await productModel.findById(_id);
-  if (!product) {
-    return next(new Error("Product is not found !", { cause: 404 }));
+  let newColorsAndSizes = [];
+  if (colorsAndSizes.length) {
+    newColorsAndSizes = [...product.colorsAndSizes, ...colorsAndSizes];
   }
 
   let newCategory = null;
   let newSubCategory = null;
   let newBrand = null;
-  let newName = null;
-  let newSlug = null;
 
   //check if category ID is sent:
   if (categoryID) {
@@ -846,30 +522,29 @@ export const updateProduct = async (req, res, next) => {
     }
     newBrand = brand._id;
   }
-  //check if name is exist and check name duplication:
-  if (name) {
-    //check dublicated name:
-    if (
-      product.name.split(" ").join("").toLowerCase() ===
-      name.split(" ").join("").toLowerCase()
-    ) {
-      return next(new Error("Name must be unique", { cause: 400 }));
-    }
-    newName = name;
-    newSlug = slugify(newName, "_");
-  }
 
   const savedProduct = await productModel.findByIdAndUpdate(
     _id,
     {
-      name: newName ?? product.name,
+      name,
+      slug,
+      productDetails,
+      colorsAndSizes: newColorsAndSizes,
+      specifications,
+      stock,
+      price: currentPrice,
+      paymentPrice: productPaymentPrice,
+      discount,
+      discountType: discountType ?? product.discountType,
+      discountFinishDate,
+      mainImage,
       categoryID: newCategory ?? product.categoryID,
       subCategoryID: newSubCategory ?? product.subCategoryID,
       brandID: newBrand ?? product.brandID,
-      slug: newSlug ?? product.slug,
     },
     { new: true }
   );
+
   if (!savedProduct) {
     return next(new Error(" Couldn't save product ", { cause: 500 }));
   }
@@ -882,12 +557,12 @@ export const updateProduct = async (req, res, next) => {
 export const removeSpecificSecondaryImage = async (req, res, next) => {
   const { _id, public_id } = req.query;
 
-  const productItem = await product_itemModel.findById(_id);
-  if (!productItem) {
+  const product = await productModel.findById(_id);
+  if (!product) {
     return next(new Error("Product item is not found !", { cause: 404 }));
   }
 
-  if (!productItem.images?.length) {
+  if (!product.images?.length) {
     return next(new Error(" Couldn't find images", { cause: 404 }));
   }
 
@@ -900,17 +575,17 @@ export const removeSpecificSecondaryImage = async (req, res, next) => {
 
   //check if this public_id is of the main image:
   if (!Array.isArray(public_id)) {
-    if (productItem.mainImage?.public_id == public_id) {
+    if (product.mainImage?.public_id == public_id) {
       return next(new Error("You can't delete main image !", { cause: 400 }));
     }
   } else {
-    if (public_id.includes(productItem.mainImage?.public_id)) {
+    if (public_id.includes(product.mainImage?.public_id)) {
       return next(new Error("You can't delete main image !", { cause: 400 }));
     }
   }
 
   //Remove image from DB
-  const deleteImages = await product_itemModel.findByIdAndUpdate(_id, {
+  const deleteImages = await productModel.findByIdAndUpdate(_id, {
     $pull: { images: { public_id: public_id } },
   });
   if (!deleteImages) {

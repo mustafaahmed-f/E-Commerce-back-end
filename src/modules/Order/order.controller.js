@@ -1,7 +1,7 @@
 import user_addressModel from "../../../DB/models/address/user_addressModel.js";
 import cartModel from "../../../DB/models/cartModel.js";
 import orderModel from "../../../DB/models/orderModel.js";
-import product_itemModel from "../../../DB/models/product_itemModel.js";
+
 import { couponValidation } from "../../utils/couponValidation.js";
 import { sendInvoice } from "../../utils/sendInvoice.js";
 import { paymentFunction } from "../../utils/payment.js";
@@ -10,23 +10,44 @@ import { ApiFeatures } from "../../utils/apiFeatures.js";
 import couponModel from "../../../DB/models/couponModel.js";
 import { signToken, verifyToken } from "../../utils/tokenMethod.js";
 import userModel from "../../../DB/models/userModel.js";
+import productModel from "../../../DB/models/productModel.js";
 
 export const addOrder = async (req, res, next) => {
   const {
     couponCode,
     address,
     phoneNumbers,
-    productID,
     productQuantity,
     paymentMethod,
+    colorAndSize,
+    specifications,
   } = req.body;
 
-  const productCheck = await product_itemModel.findById(productID);
+  const productCheck = await productModel.findById(productID);
   if (!productCheck) {
     return next(new Error("No product was found !", { cause: 404 }));
   }
-  if (productCheck.stock < productQuantity) {
-    return next(new Error("Quantity is out of range !", { cause: 404 }));
+
+  if (productCheck.overAllStock) {
+    if (productCheck.stock < productQuantity) {
+      return next(new Error("Quantity is out of range !", { cause: 404 }));
+    }
+    productCheck.stock -= productQuantity;
+    productCheck.soldItems += productQuantity;
+  } else {
+    let targetArray = productCheck.colorsAndSizes.filter(
+      (el) => el.color === colorAndSize.color && el.size === colorAndSize.size
+    );
+    if (!targetArray.length) {
+      return next(new Error("Color and size not found !", { cause: 404 }));
+    }
+
+    if (targetArray[0].stock < productQuantity) {
+      return next(new Error("Quantity is out of range !", { cause: 404 }));
+    }
+
+    targetArray[0].stock -= productQuantity;
+    targetArray[0].soldItems += productQuantity;
   }
 
   if (couponCode) {
@@ -50,24 +71,26 @@ export const addOrder = async (req, res, next) => {
       }
     }
 
-    for (const user of req.coupon.assignedUsers) {
-      if (user.user_id.toString() == req.user.id.toString()) {
-        user.usedTimes = user.usedTimes + 1;
-        await req.coupon.save();
-      }
-    }
+    await Promise.all(
+      req.coupon.assignedUsers.map(async (user) => {
+        if (user.user_id.toString() == req.user.id.toString()) {
+          user.usedTimes = user.usedTimes + 1;
+          await req.coupon.save();
+        }
+      })
+    );
   }
 
   let products = [];
   products.push({
-    productID,
     quantity: productQuantity,
     unitPaymentPrice: productCheck.paymentPrice,
     finalPaymentPrice: productCheck.paymentPrice * productQuantity,
     name: productCheck.item_name,
+    colorAndSize: colorAndSize ?? null,
+    specifications: specifications ?? null,
   });
 
-  productCheck.stock -= productQuantity;
   await productCheck.save();
 
   let subtotal = products[0].finalPaymentPrice;
@@ -182,6 +205,8 @@ export const addOrder = async (req, res, next) => {
             unit_amount: productCheck.paymentPrice * 100,
           },
           quantity: productQuantity,
+          colorAndSize: colorAndSize ?? null,
+          specifications: specifications ?? null,
         },
       ],
       discounts: stripeCoupon ? [{ coupon: stripeCoupon.id }] : [],
@@ -190,7 +215,7 @@ export const addOrder = async (req, res, next) => {
 
   //================================= Invoice =========================================
 
-  // await sendInvoice(order, req.user);
+  await sendInvoice(order, req.user);
 
   //===================================================================================
 
@@ -233,30 +258,46 @@ export const fromCartToOrder = async (req, res, next) => {
   let products = [];
   let subTotal = 0;
 
-  for (const product of checkCart.products) {
-    const checkProductExistence = await product_itemModel.findById(
-      product.productID
-    );
+  await Promise.all(
+    checkCart.products.map(async (product) => {
+      const checkProductExistence = await productModel.findById(product._id);
 
-    if (!checkProductExistence) {
-      return next(
-        new Error(
-          `Product with id : (${checkProductExistence._id}) doesn't exist`,
-          { cause: 404 }
-        )
-      );
-    }
+      if (!checkProductExistence) {
+        return next(
+          new Error(
+            `Product with id : (${checkProductExistence._id}) doesn't exist`,
+            { cause: 404 }
+          )
+        );
+      }
 
-    products.push({
-      productID: product.productID,
-      quantity: product.quantity,
-      unitPaymentPrice: checkProductExistence.paymentPrice,
-      finalPaymentPrice: checkProductExistence.paymentPrice * product.quantity,
-      name: checkProductExistence.item_name,
-    });
+      products.push({
+        quantity: product.quantity,
+        unitPaymentPrice: checkProductExistence.paymentPrice,
+        finalPaymentPrice:
+          checkProductExistence.paymentPrice * product.quantity,
+        name: checkProductExistence.item_name,
+        colorAndSize: product.colorAndSize ?? null,
+        specifications: product.specifications ?? null,
+      });
 
-    subTotal += checkProductExistence.paymentPrice * product.quantity;
-  }
+      if (checkProductExistence.overAllStock) {
+        checkProductExistence.stock -= productQuantity;
+        checkProductExistence.soldItems += productQuantity;
+      } else {
+        let targetArray = checkProductExistence.colorsAndSizes.filter(
+          (el) =>
+            el.color === colorAndSize.color && el.size === colorAndSize.size
+        );
+        if (!targetArray.length) {
+          return next(new Error("Color and size not found !", { cause: 404 }));
+        }
+
+        targetArray[0].stock -= productQuantity;
+        targetArray[0].soldItems += productQuantity;
+      }
+    })
+  );
 
   let finalPaidAmount = subTotal;
 
@@ -530,14 +571,33 @@ export const cancelPayment = async (req, res, next) => {
   }
 
   //return selected products to stock;
-  for (const product of order.products) {
-    const productItem = await product_itemModel.findById(product.productID);
-    if (!productItem) {
-      return next(new Error("Product not found !", { cause: 404 }));
-    }
-    productItem.stock += product.quantity;
-    await productItem.save();
-  }
+
+  await Promise.all(
+    order.products.map(async (product) => {
+      const productItem = await productModel.findById(product.productID);
+      if (!productItem) {
+        return next(new Error("Product not found !", { cause: 404 }));
+      }
+
+      if (productItem.overAllStock) {
+        productItem.stock += productQuantity;
+        productItem.soldItems -= productQuantity;
+      } else {
+        let targetArray = productItem.colorsAndSizes.filter(
+          (el) =>
+            el.color === colorAndSize.color && el.size === colorAndSize.size
+        );
+        if (!targetArray.length) {
+          return next(new Error("Color and size not found !", { cause: 404 }));
+        }
+
+        targetArray[0].stock += productQuantity;
+        targetArray[0].soldItems -= productQuantity;
+      }
+
+      await productItem.save();
+    })
+  );
 
   //if Coupon , reduce used times of user :
   if (order.couponID) {

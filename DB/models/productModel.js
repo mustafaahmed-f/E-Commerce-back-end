@@ -13,19 +13,66 @@ const productSchema = new Schema(
     },
     slug: {
       type: String,
-      required: true,
       trim: true,
       lowercase: true,
       unique: true,
     },
-
     customID: String,
-    // isCloth: Boolean, //If the product is a cloth, You will show this product not its items. Items will be options inside it.
-    //We will show price of any product item of that product,
+
+    colorsAndSizes: [
+      {
+        color: { type: String, default: null },
+        size: {
+          type: String,
+          default: null,
+          // enum: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],
+        },
+        stock: {
+          type: Number,
+          default: 0,
+        },
+        soldItems: {
+          type: Number,
+          default: 0,
+        },
+      },
+    ],
+    overAllStock: { type: Boolean, default: true }, //// IF it has no colorsAndSizes, this will be true which
+    //// means that it doesn't have different sizes and colors so it is a single item with a single stock number
+    stock: { type: Number, default: 0 },
+    soldItems: { type: Number, default: 0 },
+
+    specifications: { type: Schema.Types.Mixed, default: null }, //// To make specifications in an object. (For non-clothes products)
+
+    price: { type: Number, required: true, default: 0 },
+    discount: { type: Number, default: 0 },
+    discountType: { type: String, enum: ["percentage", "amount", null] },
+    discountFinishDate: Date,
+    discountFinished: { type: Boolean, default: true },
+    paymentPrice: { type: Number, default: 0 },
+
+    images: [
+      {
+        secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
+        public_id: { type: String, required: false }, //TODO : make required true after adding fake data
+      },
+    ],
+    mainImage: {
+      secure_url: { type: String, required: false }, //TODO : make required true after adding fake data
+      public_id: { type: String, required: false }, //TODO : make required true after adding fake data
+    },
+
+    rate: { type: Number, default: 0 },
+
+    productDetails: {
+      type: String,
+      default: null,
+    },
 
     categoryID: { type: Types.ObjectId, ref: "Category", required: true },
     subCategoryID: { type: Types.ObjectId, ref: "SubCategory", required: true },
     brandID: { type: Types.ObjectId, ref: "Brands", required: true },
+
     createdBy: { type: Types.ObjectId, ref: "User", required: true },
   },
   {
@@ -35,43 +82,30 @@ const productSchema = new Schema(
   }
 );
 
-productSchema.virtual("productItems", {
-  ref: "Product_item",
+productSchema.virtual("Reviews", {
+  ref: "Review",
   localField: "_id",
   foreignField: "productID",
 });
 
-//Hook for deleteing related product items when product is deleted
+//// Hook for deleteing related images when product is deleted
 productSchema.pre("findOneAndDelete", async function () {
   try {
     const product = await this.model.findOne({
       _id: this.getQuery()._id,
     });
-    const productItems = await product_itemModel.find({
-      productID: this.getQuery()._id,
-    });
 
-    if (productItems.length > 0) {
-      for (let i = 0; i < productItems.length; i++) {
-        if (
-          productItems[i].images?.length ||
-          productItems[i].mainImage?.public_id
-        ) {
-          await cloudinary.api.delete_resources_by_prefix(
-            `${process.env.cloud_folder}/Products/${product.customID}`
-          );
-          await cloudinary.api.delete_folder(
-            `${process.env.cloud_folder}/Products/${product.customID}`
-          );
-        }
-      }
+    if (product.images?.length || product.mainImage?.public_id) {
+      await cloudinary.api.delete_resources_by_prefix(
+        `${process.env.cloud_folder}/Products/${product.customID}`
+      );
+      await cloudinary.api.delete_folder(
+        `${process.env.cloud_folder}/Products/${product.customID}`
+      );
     }
-
-    await product_itemModel.deleteMany({
-      productID: this.getQuery()._id,
-    });
   } catch (error) {
     console.log(error);
+    throw new Error(error);
   }
 });
 

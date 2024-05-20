@@ -18,11 +18,6 @@ router.get(
   validation(validators.getSpecificProduct),
   asyncHandler(productConroller.getSpecificProduct)
 );
-router.get(
-  "/getSpecificProductItem/:_id",
-  validation(validators.getSpecificProduct),
-  asyncHandler(productConroller.getSpecificProductItem)
-);
 
 router.delete(
   "/deleteProduct",
@@ -30,14 +25,6 @@ router.delete(
   validation(validators.deleteProduct),
   checkAvailability,
   asyncHandler(productConroller.deleteProduct)
-);
-
-router.delete(
-  "/deleteProductItem",
-  auth([userRole.superAdmin]),
-  validation(validators.deleteProduct),
-  checkAvailability,
-  asyncHandler(productConroller.deleteProductItem)
 );
 
 //===================================================================
@@ -53,15 +40,7 @@ router.post(
   validation(validators.addProduct),
   asyncHandler(productConroller.addProduct)
 );
-router.post(
-  "/addProductItem",
-  uploadFile(fileTypeValidation.image).fields([
-    { name: "image", maxCount: 1 },
-    { name: "images", maxCount: 3 },
-  ]),
-  validation(validators.addProductItem),
-  asyncHandler(productConroller.addProductItem)
-);
+
 router.post(
   "/uploadImages",
   uploadFile(fileTypeValidation.image).array("images", 3),
@@ -72,13 +51,6 @@ router.put(
   "/updateProduct",
   validation(validators.updateProduct),
   asyncHandler(productConroller.updateProduct)
-);
-
-router.put(
-  "/updateProductItem",
-  uploadFile(fileTypeValidation.image).single("image"),
-  validation(validators.updateProductItem),
-  asyncHandler(productConroller.updateProductItem)
 );
 
 router.delete(

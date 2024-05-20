@@ -8,25 +8,30 @@ export const addProduct = {
         .string()
         .min(2)
         .max(35)
-        .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/))
+        // .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/))
         .required(),
       // validation for first product item :
-      item_name: joi.string().min(2).required(),
-      color: joi
-        .string()
-        .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)), //Hexadecimal color,
-      size: joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
+
+      stock: joi.number().min(0),
+      colorsAndSizes: joi.array().items(
+        joi.object({
+          color: joi.string(),
+          size: joi.string(),
+
+          stock: joi.number(),
+          soldItems: joi.number(),
+        })
+      ),
       specifications: joi.object(),
-      description: joi.string().min(10).max(500),
       price: joi.number().required(),
       discount: joi.number(),
+      productDetails: joi.string(),
       discountType: joi.string().valid("percentage", "amount"),
       discountFinishDate: joi
         .date()
         .iso()
         .greater(joi.ref("fromDate"))
-        .required(),
-      stock: joi.number().required(),
+        .default(null),
     })
     .required(),
   headers: joi
@@ -40,40 +45,6 @@ export const addProduct = {
       categoryID: generalValidation._id.required(),
       subCategoryID: generalValidation._id.required(),
       brandID: generalValidation._id.required(),
-    })
-    .required(),
-};
-
-export const addProductItem = {
-  body: joi
-    .object({
-      item_name: joi.string().min(2).required(),
-      color: joi
-        .string()
-        .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)), //Hexadecimal color,
-      size: joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
-      specifications: joi.object(),
-      description: joi.string().min(10).max(500),
-      price: joi.number().required(),
-      discount: joi.number(),
-      discountType: joi.string().valid("percentage", "amount"),
-      discountFinishDate: joi
-        .date()
-        .iso()
-        .greater(joi.ref("fromDate"))
-        .required(),
-      stock: joi.number().required(),
-    })
-    .required(),
-  headers: joi
-    .object({
-      authorization: generalValidation.authorization,
-    })
-    .required()
-    .unknown(true),
-  query: joi
-    .object({
-      productID: generalValidation._id.required(),
     })
     .required(),
 };
@@ -124,41 +95,6 @@ export const getSpecificProduct = {
   }),
 };
 
-export const updateProductItem = {
-  body: joi
-    .object({
-      item_name: joi.string().min(2).max(35),
-      color: joi
-        .string()
-        .pattern(new RegExp(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/)),
-      size: joi.string().valid("XS", "S", "M", "L", "XL", "XXL", "XXXL"),
-      description: joi.string().min(10).max(500),
-      price: joi.number(),
-      discount: joi.number(),
-      discountType: joi.string().valid("percentage", "amount"),
-      discountFinishDate: joi
-        .date()
-        .iso()
-        .greater(joi.ref("fromDate"))
-        .required(),
-      stock: joi.number(),
-      specifications: joi.object(),
-    })
-    .required(),
-  query: joi
-    .object({
-      _id: generalValidation._id.required(),
-      productID: generalValidation._id,
-    })
-    .required(),
-  headers: joi
-    .object({
-      authorization: generalValidation.authorization,
-    })
-    .required()
-    .unknown(true),
-};
-
 export const updateProduct = {
   body: joi.object({
     name: joi
@@ -166,6 +102,24 @@ export const updateProduct = {
       .min(2)
       .max(35)
       .pattern(new RegExp(/^[a-zA-Z0-9 ]{2,35}$/)),
+    price: joi.number(),
+    discount: joi.number(),
+    discountType: joi.string().valid("percentage", "amount"),
+    discountFinishDate: joi
+      .date()
+      .iso()
+      .greater(joi.ref("fromDate"))
+      .required(),
+    colorsAndSizes: joi.array().items(
+      joi.object({
+        color: joi.string(),
+        size: joi.string(),
+        stock: joi.number().required(),
+        soldItems: joi.number().required(),
+      })
+    ),
+    productDetails: joi.string(),
+    specifications: joi.object(),
   }),
   headers: joi
     .object({
