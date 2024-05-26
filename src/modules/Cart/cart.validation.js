@@ -18,8 +18,14 @@ export const addToCart = {
     .required()
     .unknown(true),
   body: joi.object({
+    productQuantity: joi.number().min(0).required(),
+    colorAndSize: joi.object({
+      color: joi.string(),
+      size: joi.string(),
+    }),
+  }),
+  query: joi.object({
     productID: generalValidation._id.required(),
-    quantity: joi.number().min(0).required(),
   }),
 };
 
@@ -40,6 +46,12 @@ export const deleteFromCart = {
     .required()
     .unknown(true),
   body: joi.object({
+    colorAndSize: joi.object({
+      color: joi.string(),
+      size: joi.string(),
+    }),
+  }),
+  query: joi.object({
     productID: generalValidation._id.required(),
   }),
 };
@@ -52,7 +64,13 @@ export const updateCart = {
     .required()
     .unknown(true),
   body: joi.object({
+    productQuantity: joi.number().min(0).required(),
+    colorAndSize: joi.object({
+      color: joi.string(),
+      size: joi.string(),
+    }),
+  }),
+  query: joi.object({
     productID: generalValidation._id.required(),
-    quantity: joi.number().min(0).required(),
   }),
 };

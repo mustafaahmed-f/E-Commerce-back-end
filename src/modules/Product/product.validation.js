@@ -105,19 +105,25 @@ export const updateProduct = {
     price: joi.number(),
     discount: joi.number(),
     discountType: joi.string().valid("percentage", "amount"),
-    discountFinishDate: joi
-      .date()
-      .iso()
-      .greater(joi.ref("fromDate"))
-      .required(),
+    discountFinishDate: joi.date().iso().greater(joi.ref("fromDate")),
     colorsAndSizes: joi.array().items(
       joi.object({
         color: joi.string(),
         size: joi.string(),
         stock: joi.number().required(),
-        soldItems: joi.number().required(),
+        soldItems: joi.number().default(0),
       })
     ),
+    RcolorsAndSizes: joi
+      .array()
+      .items(
+        joi.object({
+          color: joi.string(),
+          size: joi.string(),
+        })
+      )
+      .length(1),
+    overAllStock: joi.boolean(),
     productDetails: joi.string(),
     specifications: joi.object(),
   }),

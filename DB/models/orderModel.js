@@ -19,12 +19,10 @@ const orderSchema = new Schema(
         finalPaymentPrice: { type: Number, required: true },
         name: { type: String, required: true },
         specifications: { type: Schema.Types.Mixed, default: null },
-        colorAndSize: [
-          {
-            color: { type: String, default: null },
-            size: { type: String, default: null },
-          },
-        ],
+        colorAndSize: {
+          color: { type: String, default: null },
+          size: { type: String, default: null },
+        },
       },
     ],
     couponID: {

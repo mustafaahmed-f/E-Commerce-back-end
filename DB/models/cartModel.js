@@ -12,11 +12,17 @@ const cartSchema = new Schema(
       {
         productID: {
           type: Types.ObjectId,
-          ref: "Product_item",
+          ref: "Product",
           required: true,
         },
         unitPaymentPrice: { type: Number, required: true },
+        name: { type: String },
         quantity: { type: Number, required: true },
+        specifications: { type: Schema.Types.Mixed, default: null },
+        colorAndSize: {
+          color: { type: String, default: null },
+          size: { type: String, default: null },
+        },
       },
     ],
     subTotal: { type: Number, required: true },

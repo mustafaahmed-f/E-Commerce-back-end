@@ -237,6 +237,7 @@ export const addProduct = async (req, res, next) => {
   const product = await productModel.create({
     name,
     price,
+    paymentPrice: productPaymentPrice,
     slug,
     categoryID,
     subCategoryID,
@@ -247,6 +248,7 @@ export const addProduct = async (req, res, next) => {
     discount,
     discountType,
     discountFinishDate,
+    overAllStock: colorsAndSizes.length ? false : true,
     createdBy: req.user.id,
   });
 
@@ -398,12 +400,20 @@ export const updateProduct = async (req, res, next) => {
     discountType,
     discountFinishDate,
     specifications,
+    RcolorsAndSizes,
+    overAllStock,
   } = req.body;
   const { categoryID, subCategoryID, brandID, _id } = req.query;
 
   const product = await productModel.findById(_id);
   if (!product) {
     return next(new Error("Product is not found !", { cause: 404 }));
+  }
+
+  if (product.overAllStock && colorsAndSizes) {
+    return next(
+      new Error("Product doesn't have colors and sizes !", { cause: 400 })
+    );
   }
 
   let mainImage = null;
@@ -486,10 +496,22 @@ export const updateProduct = async (req, res, next) => {
     slug = slugify(name, "_");
   }
 
+  console.log(RcolorsAndSizes);
+
   let newColorsAndSizes = [];
-  if (colorsAndSizes.length) {
+  if (colorsAndSizes?.length) {
     newColorsAndSizes = [...product.colorsAndSizes, ...colorsAndSizes];
+  } else if (RcolorsAndSizes?.length) {
+    newColorsAndSizes = product.colorsAndSizes.filter((el) => {
+      return !(
+        el.color === RcolorsAndSizes[0].color &&
+        el.size === RcolorsAndSizes[0].size
+      );
+    });
+  } else {
+    newColorsAndSizes = [...product.colorsAndSizes];
   }
+  console.log(newColorsAndSizes);
 
   let newCategory = null;
   let newSubCategory = null;
@@ -538,6 +560,7 @@ export const updateProduct = async (req, res, next) => {
       discountType: discountType ?? product.discountType,
       discountFinishDate,
       mainImage,
+      overAllStock: overAllStock ?? product.overAllStock,
       categoryID: newCategory ?? product.categoryID,
       subCategoryID: newSubCategory ?? product.subCategoryID,
       brandID: newBrand ?? product.brandID,

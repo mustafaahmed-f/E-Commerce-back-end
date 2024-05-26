@@ -11,12 +11,10 @@ export const addOrder = {
       .required(),
     productQuantity: joi.number().min(0).required(),
     paymentMethod: joi.string().valid("card", "cash").required(),
-    colorAndSize: joi.array().items(
-      joi.object({
-        color: joi.string(),
-        size: joi.string(),
-      })
-    ),
+    colorAndSize: joi.object({
+      color: joi.string(),
+      size: joi.string(),
+    }),
     specifications: joi.object(),
   }),
   headers: joi
