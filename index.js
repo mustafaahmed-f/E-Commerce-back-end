@@ -12,7 +12,6 @@ import {
   fakeProductsDataGenerator,
   fakeSubCategoriesDataGenerator,
   fakeUsersDataGenerator,
-  fakeProductItemsDataGenerator,
 } from "./src/utils/fakeData.js";
 
 config({ path: path.resolve("./config/config.env") });
@@ -31,5 +30,4 @@ bootstrap(app, express);
 // fakeSubCategoriesDataGenerator();
 // fakeBrandsDataGenerator();
 // fakeProductsDataGenerator();
-// fakeProductItemsDataGenerator();
 // fakeUsersDataGenerator();

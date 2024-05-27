@@ -189,171 +189,81 @@ export const fakeBrandsDataGenerator = async () => {
 //===================================================================
 
 export const fakeProductsDataGenerator = async () => {
-  const productArr = [
+  let sizes = ["S", "M", "L", "XL", "XXL", "XXXL"];
+  let colors = ["red", "green", "blue", "yellow", "black", "white"];
+  let IDs = [
     {
-      name: "iPhone 12",
-      categoryID: "654fb3e2d659f47507cbb9c3",
-      subCategoryID: "654fb7d3b5c5c6ea1ae337d9",
-      brandID: "6551072a1ca34ee7a8b87ab5",
-    },
-    {
-      name: "Canon EOS R5",
-      categoryID: "654fb3e2d659f47507cbb9c3",
-      subCategoryID: "654fb7d7b5c5c6ea1ae337e8",
-      brandID: "6551072e1ca34ee7a8b87ac7",
-    },
-    {
-      name: "Men's T-Shirts",
       categoryID: "654fb3e5d659f47507cbb9cd",
       subCategoryID: "654fb84f1997bb3fd8436aea",
-      brandID: "6551072e1ca34ee7a8b87acd",
-    },
-    {
-      name: "Women's dresses",
-      categoryID: "654fb3e5d659f47507cbb9cd",
-      subCategoryID: "654fb8521997bb3fd8436af4",
-      brandID: "6551072f1ca34ee7a8b87ad3",
-    },
-    {
-      name: "Refrigerators",
-      categoryID: "654fb3e6d659f47507cbb9d2",
-      subCategoryID: "654fb9793926286ed1f4d312",
-      brandID: "6551072e1ca34ee7a8b87ac9",
-    },
-    {
-      name: "Microwaves",
-      categoryID: "654fb3e6d659f47507cbb9d2",
-      subCategoryID: "654fb9793926286ed1f4d312",
-      brandID: "6551072f1ca34ee7a8b87adb",
-    },
-    {
-      name: "Shampoos",
-      categoryID: "654fb3e6d659f47507cbb9d5",
-      subCategoryID: "6550f1f195df7ffa18b82c40",
-      brandID: "65520ff23a3ca7469ebbf857",
-    },
-    {
-      name: "Treadmills",
-      categoryID: "654fb3e6d659f47507cbb9d7",
-      subCategoryID: "6550f2fee7b5d1160a83bc42",
-      brandID: "65520fef3a3ca7469ebbf84d",
-    },
-    {
-      name: "Yoga mats",
-      categoryID: "654fb3e6d659f47507cbb9d7",
-      subCategoryID: "6550f2fee7b5d1160a83bc42",
-      brandID: "6551072f1ca34ee7a8b87ad7",
-    },
-    {
-      name: "Soccer ball",
-      categoryID: "654fb3e6d659f47507cbb9d7",
-      subCategoryID: "6550f303e7b5d1160a83bc52",
       brandID: "6551072e1ca34ee7a8b87acf",
     },
     {
-      name: "Tennis racket",
-      categoryID: "654fb3e6d659f47507cbb9d7",
-      subCategoryID: "6550f303e7b5d1160a83bc52",
-      brandID: "6551072e1ca34ee7a8b87ad1",
-    },
-    {
-      name: "Harrey potter series",
-      categoryID: "654fb3e6d659f47507cbb9d9",
-      subCategoryID: "6550f439bf9740cd22d7b750",
-      brandID: "6551072e1ca34ee7a8b87acb",
-    },
-    {
-      name: "Notebooks",
-      categoryID: "654fb3e6d659f47507cbb9d9",
-      subCategoryID: "6550f43cbf9740cd22d7b75f",
-      brandID: "65520ff33a3ca7469ebbf85c",
-    },
-    {
-      name: "Fish oils",
-      categoryID: "654fb3e7d659f47507cbb9dd",
-      subCategoryID: "6550f59a156b75ae67383edf",
-      brandID: "6551072f1ca34ee7a8b87ad5",
-    },
-    {
-      name: "Foam rollers",
-      categoryID: "654fb3e7d659f47507cbb9dd",
-      subCategoryID: "6550f59d156b75ae67383eea",
-      brandID: "6551072e1ca34ee7a8b87acf",
-    },
-    {
-      name: "Toothpaste",
-      categoryID: "654fb3e7d659f47507cbb9dd",
-      subCategoryID: "6550f59f156b75ae67383eef",
-      brandID: "6551072f1ca34ee7a8b87ad9",
-    },
-    {
-      name: "Toshiba laptops",
       categoryID: "654fb3e2d659f47507cbb9c3",
       subCategoryID: "654fb7d7b5c5c6ea1ae337e3",
-      brandID: "6551072e1ca34ee7a8b87ac9",
+      brandID: "6551072d1ca34ee7a8b87abf",
     },
   ];
-  for (let i = 0; i < productArr.length; i++) {
+  for (let i = 1; i < 20; i++) {
     let product = {
-      name: productArr[i].name,
-      createdBy: "654d2b04d4429b90acb70b3c",
-      slug: "",
-      categoryID: productArr[i].categoryID,
-      subCategoryID: productArr[i].subCategoryID,
-      brandID: productArr[i].brandID,
-    };
-    product.slug = slugify(product.name, "_");
-
-    const newproduct = new productModel(product);
-    await newproduct.save();
-  }
-};
-
-export const fakeProductItemsDataGenerator = async () => {
-  let sizes = ["S", "M", "L", "XL", "XXL", "XXXL"];
-  for (let i = 1; i < 3; i++) {
-    let product_item = {
-      productID: "655211b7e83e8c48aada13bc",
-      item_name: `adidas Mens Train Essentials 3-Stripes Training T-Shirt ${sizes[i]}`,
+      productID: "654d2b04d4429b90acb70b3c",
+      name: `new2 ${faker.lorem.lines(1)}`,
       description:
         "100% rec polyester - REGULAR-Crewneck - MADE IN PART W RECYCLED MATERIALS",
-      item_slug: "",
+      slug: "",
       createdBy: "65206bde187c71d9a1a1a539",
       price: faker.commerce.price({ min: 20, max: 50000 }),
       discount: 0,
+      stock: 0,
+      overAllStock: false,
       paymentPrice: 0,
-      stock: faker.number.int({ min: 10, max: 50 }),
-      item_customID: nanoid(),
-      color: "#5FA692",
-      size: sizes[i],
-      images: [
+      // stock: faker.number.int({ min: 10, max: 50 }),
+      stock: 0,
+      soldItems: 0,
+      customID: nanoid(),
+      colorsAndSizes: [
         {
-          secure_url:
-            "https://res.cloudinary.com/dvvmu40wx/image/upload/v1700161707/eCommerce/product_items/men%27s%20tshirt/1_jp0mq6.jpg",
-          public_id: "",
-        },
-        {
-          secure_url:
-            "https://res.cloudinary.com/dvvmu40wx/image/upload/v1700161707/eCommerce/product_items/men%27s%20tshirt/2_dgmiw5.jpg",
-          public_id: "",
+          color: colors[Math.floor(Math.random() * 5)],
+          size: sizes[Math.floor(Math.random() * 5)],
+          stock: faker.number.int({ min: 10, max: 50 }),
+          soldItems: 0,
         },
       ],
-      mainImage: {
-        secure_url:
-          "https://res.cloudinary.com/dvvmu40wx/image/upload/v1700161707/eCommerce/product_items/men%27s%20tshirt/main_ifesvy.jpg",
-        public_id: "",
-      },
+      categoryID: IDs[0].categoryID,
+      subCategoryID: IDs[0].subCategoryID,
+      brandID: IDs[0].brandID,
+
+      rate: Math.floor(Math.random() * 6),
+      // images: [
+      //   {
+      //     secure_url:
+      //       "https://res.cloudinary.com/dvvmu40wx/image/upload/v1700161707/eCommerce/product_items/men%27s%20tshirt/1_jp0mq6.jpg",
+      //     public_id: "",
+      //   },
+      //   {
+      //     secure_url:
+      //       "https://res.cloudinary.com/dvvmu40wx/image/upload/v1700161707/eCommerce/product_items/men%27s%20tshirt/2_dgmiw5.jpg",
+      //     public_id: "",
+      //   },
+      // ],
+      // mainImage: {
+      //   secure_url:
+      //     "https://res.cloudinary.com/dvvmu40wx/image/upload/v1700161707/eCommerce/product_items/men%27s%20tshirt/main_ifesvy.jpg",
+      //   public_id: "",
+      // },
       // specifications: {
       //   ram: "6GB",
       //   processor: "Core i7",
       // }, // Custom specifications
     };
-    product_item.item_slug = slugify(product_item.item_name, "_");
-    product_item.paymentPrice =
-      product_item.price * (1 - product_item.discount / 100);
+    product.slug = slugify(product.name, "_");
+    product.paymentPrice = product.price * (1 - product.discount / 100);
 
-    const newproduct_item = new product_itemModel(product_item);
-    await newproduct_item.save();
+    try {
+      const newProduct = new productModel(product);
+      await newProduct.save();
+    } catch (error) {
+      console.log(error);
+    }
   }
 };
 

@@ -27,6 +27,12 @@ router.delete(
   asyncHandler(productConroller.deleteProduct)
 );
 
+router.get(
+  "/checkStock",
+  validation(validators.checkStock),
+  asyncHandler(productConroller.checkStock)
+);
+
 //===================================================================
 //===================================================================
 router.use(auth([userRole.admin, userRole.superAdmin]));

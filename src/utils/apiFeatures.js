@@ -12,19 +12,21 @@ export class ApiFeatures {
   paignation() {
     const { page, size } = this.queryObj;
     const { limit, skip } = paginationFunction({ page, size });
-    this.mongooseQuery.limit(limit).skip(skip);
+    this.mongooseQuery?.limit(limit).skip(skip);
     return this;
   }
 
   //sort
   sort() {
-    this.mongooseQuery.sort(this.queryObj.sort?.replaceAll("/", " "));
+    if (!this.queryObj?.sort) return this;
+    this.mongooseQuery?.sort(this.queryObj.sort?.replaceAll("/", " "));
     return this;
   }
 
   //select
   select() {
-    this.mongooseQuery.select(this.queryObj.select?.replaceAll("/", " "));
+    if (!this.queryObj?.select) return this;
+    this.mongooseQuery?.select(this.queryObj.select?.replaceAll("/", " "));
     return this;
   }
 
@@ -55,15 +57,43 @@ export class ApiFeatures {
 
     //// Check If there is filtration for colors or sizes
 
-    if (colors && Array.isArray(colors) && colors.length > 0) {
-      this.query = { ...this.query, "colorsAndSizes.color": { $in: colors } };
+    if (colors && !sizes && colors.length > 0) {
+      console.log("here");
+      this.query = {
+        ...this.query,
+        colorsAndSizes: {
+          $elemMatch: {
+            color: { $in: colors },
+          },
+        },
+      };
     }
 
-    if (sizes && Array.isArray(sizes) && sizes.length > 0) {
-      this.query = { ...this.query, "colorsAndSizes.size": { $in: sizes } };
+    if (sizes && !colors && sizes.length > 0) {
+      this.query = {
+        ...this.query,
+        colorsAndSizes: {
+          $elemMatch: {
+            size: { $in: sizes },
+          },
+        },
+      };
+    }
+
+    if (colors && sizes && colors.length > 0 && sizes.length > 0) {
+      this.query = {
+        ...this.query,
+        colorsAndSizes: {
+          $elemMatch: {
+            color: { $in: colors },
+            size: { $in: sizes },
+          },
+        },
+      };
     }
 
     this.mongooseQuery.find(this.query);
+
     return this;
   }
 }

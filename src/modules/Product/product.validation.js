@@ -168,3 +168,21 @@ export const removeSpecificSecondaryImage = {
     .required()
     .unknown(true),
 };
+
+export const checkStock = {
+  query: joi
+    .object({
+      productID: generalValidation._id.required(),
+    })
+    .required(),
+  body: joi
+    .object({
+      colorAndSize: joi
+        .object({
+          color: joi.string(),
+          size: joi.string(),
+        })
+        .required(),
+    })
+    .required(),
+};

@@ -23,22 +23,15 @@ export const getEveryProduct = async (req, res, next) => {
 };
 
 export const getAllProducts = async (req, res, next) => {
-  console.log(req.query);
   const apiFeaturesInstance = new ApiFeatures(productModel.find(), req.query)
     .sort()
     .paignation()
-    .filter()
-    .select();
+    .select()
+    .filter();
 
   console.log(apiFeaturesInstance.query);
 
-  const numOfDocuments = await productModel.countDocuments(
-    apiFeaturesInstance.query
-  );
-
-  console.log(numOfDoc);
-
-  const products = await apiFeaturesInstance.mongooseQuery.populate(
+  const products = await apiFeaturesInstance.mongooseQuery.populate([
     {
       path: "categoryID",
       select: "name",
@@ -46,12 +39,16 @@ export const getAllProducts = async (req, res, next) => {
 
     { path: "subCategoryID", select: "name" },
 
-    { path: "brandID", select: "name" }
-  );
+    { path: "brandID", select: "name" },
+  ]);
 
   if (!products.length) {
     return next(new Error("No products were found !", { cause: 404 }));
   }
+
+  const numOfDocuments = await products.length;
+
+  console.log(numOfDocuments);
 
   res.status(200).json({ message: "Done", products, numOfDocuments });
 };
@@ -628,4 +625,48 @@ export const removeSpecificSecondaryImage = async (req, res, next) => {
   }
 
   return res.status(200).json({ message: "Images were successfully deleted!" });
+};
+
+//===================================================================
+//=================Check stock for size or color=====================
+//===================================================================
+
+export const checkStock = async (req, res, next) => {
+  const { colorAndSize } = req.body;
+  const { productID } = req.query;
+
+  if (
+    (!colorAndSize.color && colorAndSize.size) ||
+    (colorAndSize.color && !colorAndSize.size)
+  ) {
+    return next(
+      new Error("Please provide both color and size !", { cause: 400 })
+    );
+  }
+
+  const product = await productModel.findById(productID);
+  if (!product) {
+    return next(new Error("Product  is not found !", { cause: 404 }));
+  }
+  if (product.overAllStock) {
+    return next(
+      new Error("Product doesn't have colors or sizes !", { cause: 400 })
+    );
+  }
+
+  const colorAndSizeObject = product.colorsAndSizes.find(
+    (item) =>
+      item.color === colorAndSize.color && item.size === colorAndSize.size
+  );
+
+  console.log(colorAndSizeObject);
+
+  if (!colorAndSizeObject) {
+    return next(
+      new Error("Product doesn't have this color or size !", { cause: 400 })
+    );
+  }
+  return res
+    .status(200)
+    .json({ message: "Success", stock: colorAndSizeObject.stock });
 };
